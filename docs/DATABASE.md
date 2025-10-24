@@ -6,18 +6,19 @@ JobTracker sử dụng **MySQL 8.0** làm database chính với thiết kế nor
 
 ### 🎯 Thiết kế nguyên tắc
 - **Normalization**: 3NF để tránh redundancy
-- **UUID Primary Keys**: Sử dụng STRING cho tất cả primary keys
+- **UUID Primary Keys**: Sử dụng VARCHAR(36) cho tất cả primary keys
 - **Indexing**: Tối ưu cho các truy vấn thường xuyên
 - **Foreign Keys**: Đảm bảo referential integrity với UUID
 - **Audit Fields**: Tracking tất cả thay đổi với full audit trail
 - **Soft Delete**: Không xóa dữ liệu thực tế với deleted_at
 
 ### 🆔 **UUID IMPLEMENTATION STRATEGY**
-- **Primary Keys**: STRING với UUID() function
-- **Foreign Keys**: STRING references
+- **Primary Keys**: VARCHAR(36) với UUID() function
+- **Foreign Keys**: VARCHAR(36) references
 - **Indexing**: Optimized cho UUID lookups
 - **Performance**: Proper indexing cho UUID queries
 - **Security**: UUIDs không thể guess được
+- **Consistency**: Tất cả bảng đều dùng UUID làm primary key
 
 ## 🏗️ Database Schema
 
@@ -26,14 +27,14 @@ JobTracker sử dụng **MySQL 8.0** làm database chính với thiết kế nor
 #### 1.1. Roles Table (Bảng vai trò)
 ```sql
 CREATE TABLE roles (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID vai trò',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID vai trò',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên vai trò',
     description VARCHAR(255) COMMENT 'Mô tả vai trò',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Vai trò đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -54,7 +55,7 @@ CREATE TABLE roles (
 #### 1.2. Permissions Table (Bảng quyền)
 ```sql
 CREATE TABLE permissions (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID quyền',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID quyền',
     name VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tên quyền',
     resource VARCHAR(100) NOT NULL COMMENT 'Tài nguyên',
     action VARCHAR(50) NOT NULL COMMENT 'Hành động (CREATE, READ, UPDATE, DELETE)',
@@ -62,8 +63,8 @@ CREATE TABLE permissions (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Quyền đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -82,10 +83,37 @@ CREATE TABLE permissions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-#### 1.3. Job Statuses Table (Bảng trạng thái công việc)
+#### 1.3. Role Permissions Table (Bảng phân quyền - Many-to-Many)
+```sql
+CREATE TABLE role_permissions (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID role permission',
+    role_id VARCHAR(36) NOT NULL COMMENT 'UUID vai trò',
+    permission_id VARCHAR(36) NOT NULL COMMENT 'UUID quyền',
+    
+    -- Partial Audit Fields (Junction Table)
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
+    
+    -- Foreign Keys
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
+    UNIQUE KEY uk_role_permission (role_id, permission_id),
+    INDEX idx_role_id (role_id),
+    INDEX idx_permission_id (permission_id),
+    INDEX idx_created_by (created_by),
+    INDEX idx_is_deleted (is_deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 1.4. Job Statuses Table (Bảng trạng thái công việc)
 ```sql
 CREATE TABLE job_statuses (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên trạng thái',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả trạng thái',
@@ -94,8 +122,8 @@ CREATE TABLE job_statuses (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -117,15 +145,15 @@ CREATE TABLE job_statuses (
 #### 1.4. Job Types Table (Bảng loại công việc)
 ```sql
 CREATE TABLE job_types (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại công việc',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại công việc',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại công việc',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại công việc',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -146,7 +174,7 @@ CREATE TABLE job_types (
 #### 1.5. Priorities Table (Bảng độ ưu tiên)
 ```sql
 CREATE TABLE priorities (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên độ ưu tiên',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     level INT NOT NULL COMMENT 'Mức độ ưu tiên (1-4)',
@@ -155,8 +183,8 @@ CREATE TABLE priorities (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Độ ưu tiên đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -178,7 +206,7 @@ CREATE TABLE priorities (
 #### 1.6. Experience Levels Table (Bảng cấp độ kinh nghiệm)
 ```sql
 CREATE TABLE experience_levels (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID cấp độ kinh nghiệm',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID cấp độ kinh nghiệm',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên cấp độ',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     min_years INT DEFAULT 0 COMMENT 'Số năm kinh nghiệm tối thiểu',
@@ -187,8 +215,8 @@ CREATE TABLE experience_levels (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Cấp độ đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -210,15 +238,15 @@ CREATE TABLE experience_levels (
 #### 1.7. Interview Types Table (Bảng loại phỏng vấn)
 ```sql
 CREATE TABLE interview_types (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại phỏng vấn',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại phỏng vấn',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại phỏng vấn',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -239,7 +267,7 @@ CREATE TABLE interview_types (
 #### 1.8. Interview Statuses Table (Bảng trạng thái phỏng vấn)
 ```sql
 CREATE TABLE interview_statuses (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái phỏng vấn',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên trạng thái',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả trạng thái',
@@ -247,8 +275,8 @@ CREATE TABLE interview_statuses (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -269,7 +297,7 @@ CREATE TABLE interview_statuses (
 #### 1.9. Interview Results Table (Bảng kết quả phỏng vấn)
 ```sql
 CREATE TABLE interview_results (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kết quả phỏng vấn',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kết quả phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên kết quả',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả kết quả',
@@ -277,8 +305,8 @@ CREATE TABLE interview_results (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Kết quả đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -299,7 +327,7 @@ CREATE TABLE interview_results (
 #### 1.10. Notification Types Table (Bảng loại thông báo)
 ```sql
 CREATE TABLE notification_types (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại thông báo',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại thông báo',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại thông báo',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại thông báo',
@@ -307,8 +335,8 @@ CREATE TABLE notification_types (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -329,7 +357,7 @@ CREATE TABLE notification_types (
 #### 1.11. Notification Priorities Table (Bảng độ ưu tiên thông báo)
 ```sql
 CREATE TABLE notification_priorities (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên thông báo',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên thông báo',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên độ ưu tiên',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     level INT NOT NULL COMMENT 'Mức độ ưu tiên (1-4)',
@@ -338,8 +366,8 @@ CREATE TABLE notification_priorities (
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Độ ưu tiên đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -362,22 +390,22 @@ CREATE TABLE notification_priorities (
 
 ```sql
 CREATE TABLE users (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID người dùng',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID người dùng',
     email VARCHAR(255) NOT NULL UNIQUE COMMENT 'Email đăng nhập',
     password VARCHAR(255) COMMENT 'Mật khẩu đã hash (null nếu dùng OAuth)',
     first_name VARCHAR(100) NOT NULL COMMENT 'Tên',
     last_name VARCHAR(100) NOT NULL COMMENT 'Họ',
     phone VARCHAR(20) COMMENT 'Số điện thoại',
     avatar_url VARCHAR(500) COMMENT 'URL ảnh đại diện',
-    role_id STRING NOT NULL COMMENT 'UUID vai trò người dùng',
+    role_id VARCHAR(36) NOT NULL COMMENT 'UUID vai trò người dùng',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái hoạt động',
     email_verified BOOLEAN DEFAULT FALSE COMMENT 'Email đã xác thực',
     google_id VARCHAR(100) UNIQUE COMMENT 'Google OAuth ID',
     last_login_at TIMESTAMP NULL COMMENT 'Lần đăng nhập cuối',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -402,7 +430,7 @@ CREATE TABLE users (
 
 ```sql
 CREATE TABLE companies (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công ty',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công ty',
     name VARCHAR(255) NOT NULL COMMENT 'Tên công ty',
     website VARCHAR(500) COMMENT 'Website công ty',
     industry VARCHAR(100) COMMENT 'Lĩnh vực hoạt động',
@@ -413,8 +441,8 @@ CREATE TABLE companies (
     is_verified BOOLEAN DEFAULT FALSE COMMENT 'Công ty đã xác thực',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -438,17 +466,18 @@ CREATE TABLE companies (
 
 ```sql
 CREATE TABLE jobs (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công việc',
-    user_id STRING NOT NULL COMMENT 'UUID người dùng sở hữu',
-    company_id STRING NOT NULL COMMENT 'UUID công ty',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công việc',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng sở hữu',
+    company_id VARCHAR(36) NOT NULL COMMENT 'UUID công ty',
     title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề công việc',
     position VARCHAR(255) NOT NULL COMMENT 'Vị trí ứng tuyển',
-    job_type_id STRING NOT NULL COMMENT 'UUID loại công việc',
+    job_type_id VARCHAR(36) NOT NULL COMMENT 'UUID loại công việc',
     location VARCHAR(255) COMMENT 'Địa điểm làm việc',
     salary_min DECIMAL(12,2) COMMENT 'Mức lương tối thiểu',
     salary_max DECIMAL(12,2) COMMENT 'Mức lương tối đa',
     currency VARCHAR(3) DEFAULT 'USD' COMMENT 'Đơn vị tiền tệ',
-    status_id STRING NOT NULL COMMENT 'UUID trạng thái ứng tuyển',
+    CONSTRAINT chk_currency CHECK (currency IN ('USD', 'VND', 'EUR', 'GBP', 'JPY')),
+    status_id VARCHAR(36) NOT NULL COMMENT 'UUID trạng thái ứng tuyển',
     application_date DATE COMMENT 'Ngày nộp đơn',
     deadline_date DATE COMMENT 'Hạn nộp đơn',
     interview_date DATE COMMENT 'Ngày phỏng vấn',
@@ -458,13 +487,13 @@ CREATE TABLE jobs (
     benefits TEXT COMMENT 'Quyền lợi',
     job_url VARCHAR(500) COMMENT 'URL tin tuyển dụng',
     notes TEXT COMMENT 'Ghi chú cá nhân',
-    priority_id STRING NOT NULL COMMENT 'UUID độ ưu tiên',
+    priority_id VARCHAR(36) NOT NULL COMMENT 'UUID độ ưu tiên',
     is_remote BOOLEAN DEFAULT FALSE COMMENT 'Làm việc từ xa',
-    experience_level_id STRING COMMENT 'UUID cấp độ kinh nghiệm',
+    experience_level_id VARCHAR(36) COMMENT 'UUID cấp độ kinh nghiệm',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -503,15 +532,15 @@ CREATE TABLE jobs (
 
 ```sql
 CREATE TABLE skills (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kỹ năng',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kỹ năng',
     name VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tên kỹ năng',
     category VARCHAR(50) NOT NULL COMMENT 'Danh mục kỹ năng (PROGRAMMING, FRAMEWORK, DATABASE, TOOL, LANGUAGE, SOFT_SKILL, OTHER)',
     description TEXT COMMENT 'Mô tả kỹ năng',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Kỹ năng đang hoạt động',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -534,16 +563,20 @@ CREATE TABLE skills (
 
 ```sql
 CREATE TABLE job_skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL COMMENT 'ID công việc',
-    skill_id BIGINT NOT NULL COMMENT 'ID kỹ năng',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID job skill',
+    job_id VARCHAR(36) NOT NULL COMMENT 'UUID công việc',
+    skill_id VARCHAR(36) NOT NULL COMMENT 'UUID kỹ năng',
     is_required BOOLEAN DEFAULT TRUE COMMENT 'Kỹ năng bắt buộc',
     proficiency_level VARCHAR(50) COMMENT 'Mức độ thành thạo yêu cầu (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT)',
+    CONSTRAINT chk_job_skill_proficiency CHECK (proficiency_level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT')),
+    
+    -- Partial Audit Fields (Junction Table)
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
     is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -560,15 +593,16 @@ CREATE TABLE job_skills (
 
 ```sql
 CREATE TABLE user_skills (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID user skill',
-    user_id STRING NOT NULL COMMENT 'UUID người dùng',
-    skill_id STRING NOT NULL COMMENT 'UUID kỹ năng',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID user skill',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng',
+    skill_id VARCHAR(36) NOT NULL COMMENT 'UUID kỹ năng',
     proficiency_level VARCHAR(50) NOT NULL COMMENT 'Mức độ thành thạo (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT)',
+    CONSTRAINT chk_proficiency_level CHECK (proficiency_level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT')),
     years_of_experience DECIMAL(3,1) COMMENT 'Số năm kinh nghiệm',
     is_verified BOOLEAN DEFAULT FALSE COMMENT 'Kỹ năng đã xác thực',
     
     -- Partial Audit Fields (Junction Table)
-    created_by STRING COMMENT 'Người tạo (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
@@ -592,18 +626,18 @@ CREATE TABLE user_skills (
 
 ```sql
 CREATE TABLE interviews (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID phỏng vấn',
-    job_id STRING NOT NULL COMMENT 'UUID công việc',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID phỏng vấn',
+    job_id VARCHAR(36) NOT NULL COMMENT 'UUID công việc',
     round_number INT NOT NULL COMMENT 'Số vòng phỏng vấn',
-    interview_type_id STRING NOT NULL COMMENT 'UUID loại phỏng vấn',
+    interview_type_id VARCHAR(36) NOT NULL COMMENT 'UUID loại phỏng vấn',
     scheduled_date TIMESTAMP NOT NULL COMMENT 'Thời gian phỏng vấn dự kiến',
     actual_date TIMESTAMP NULL COMMENT 'Thời gian phỏng vấn thực tế',
     duration_minutes INT COMMENT 'Thời lượng phỏng vấn (phút)',
     interviewer_name VARCHAR(255) COMMENT 'Tên người phỏng vấn',
     interviewer_email VARCHAR(255) COMMENT 'Email người phỏng vấn',
     interviewer_position VARCHAR(255) COMMENT 'Vị trí người phỏng vấn',
-    status_id STRING NOT NULL COMMENT 'UUID trạng thái phỏng vấn',
-    result_id STRING COMMENT 'UUID kết quả phỏng vấn',
+    status_id VARCHAR(36) NOT NULL COMMENT 'UUID trạng thái phỏng vấn',
+    result_id VARCHAR(36) COMMENT 'UUID kết quả phỏng vấn',
     feedback TEXT COMMENT 'Phản hồi từ nhà tuyển dụng',
     notes TEXT COMMENT 'Ghi chú cá nhân',
     questions_asked TEXT COMMENT 'Câu hỏi được hỏi',
@@ -611,8 +645,8 @@ CREATE TABLE interviews (
     rating INT CHECK (rating >= 1 AND rating <= 5) COMMENT 'Đánh giá chất lượng phỏng vấn (1-5)',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -644,13 +678,13 @@ CREATE TABLE interviews (
 
 ```sql
 CREATE TABLE job_resumes (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID job resume',
-    job_id STRING NOT NULL COMMENT 'UUID công việc',
-    resume_id STRING NOT NULL COMMENT 'UUID CV',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID job resume',
+    job_id VARCHAR(36) NOT NULL COMMENT 'UUID công việc',
+    resume_id VARCHAR(36) NOT NULL COMMENT 'UUID CV',
     is_primary BOOLEAN DEFAULT TRUE COMMENT 'CV chính được sử dụng',
     
     -- Partial Audit Fields (Junction Table)
-    created_by STRING COMMENT 'Người tạo (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
@@ -673,8 +707,8 @@ CREATE TABLE job_resumes (
 
 ```sql
 CREATE TABLE resumes (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID CV',
-    user_id STRING NOT NULL COMMENT 'UUID người dùng sở hữu',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID CV',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng sở hữu',
     name VARCHAR(255) NOT NULL COMMENT 'Tên file CV',
     original_filename VARCHAR(255) NOT NULL COMMENT 'Tên file gốc',
     file_path VARCHAR(500) NOT NULL COMMENT 'Đường dẫn file trên Dropbox',
@@ -688,8 +722,8 @@ CREATE TABLE resumes (
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian upload',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -713,22 +747,23 @@ CREATE TABLE resumes (
 
 ```sql
 CREATE TABLE attachments (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID file đính kèm',
-    job_id STRING NOT NULL COMMENT 'UUID công việc',
-    user_id STRING NOT NULL COMMENT 'UUID người dùng upload',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID file đính kèm',
+    job_id VARCHAR(36) NOT NULL COMMENT 'UUID công việc',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng upload',
     filename VARCHAR(255) NOT NULL COMMENT 'Tên file',
     original_filename VARCHAR(255) NOT NULL COMMENT 'Tên file gốc',
     file_path VARCHAR(500) NOT NULL COMMENT 'Đường dẫn file trên Dropbox',
     file_size BIGINT NOT NULL COMMENT 'Kích thước file (bytes)',
     file_type VARCHAR(100) NOT NULL COMMENT 'Loại file',
     attachment_type ENUM('JOB_DESCRIPTION', 'COVER_LETTER', 'CERTIFICATE', 'PORTFOLIO', 'OTHER') NOT NULL COMMENT 'Loại file đính kèm',
+    CONSTRAINT chk_attachment_type CHECK (attachment_type IN ('JOB_DESCRIPTION', 'COVER_LETTER', 'CERTIFICATE', 'PORTFOLIO', 'OTHER')),
     description TEXT COMMENT 'Mô tả file',
     is_public BOOLEAN DEFAULT FALSE COMMENT 'File công khai',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian upload',
     
     -- Full Audit Fields
-    created_by STRING COMMENT 'Người tạo (FK to users)',
-    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
+    created_by VARCHAR(36) COMMENT 'Người tạo (FK to users)',
+    updated_by VARCHAR(36) COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
@@ -754,17 +789,17 @@ CREATE TABLE attachments (
 
 ```sql
 CREATE TABLE notifications (
-    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID thông báo',
-    user_id STRING NOT NULL COMMENT 'UUID người dùng nhận thông báo',
-    job_id STRING NULL COMMENT 'UUID công việc liên quan (nullable)',
-    type_id STRING NOT NULL COMMENT 'UUID loại thông báo',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID thông báo',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng nhận thông báo',
+    job_id VARCHAR(36) NULL COMMENT 'UUID công việc liên quan (nullable)',
+    type_id VARCHAR(36) NOT NULL COMMENT 'UUID loại thông báo',
     title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề thông báo',
     message TEXT NOT NULL COMMENT 'Nội dung thông báo',
     is_read BOOLEAN DEFAULT FALSE COMMENT 'Đã đọc chưa',
     is_sent BOOLEAN DEFAULT FALSE COMMENT 'Đã gửi chưa',
     sent_at TIMESTAMP NULL COMMENT 'Thời gian gửi',
     scheduled_at TIMESTAMP NULL COMMENT 'Thời gian lên lịch gửi',
-    priority_id STRING NOT NULL COMMENT 'UUID độ ưu tiên',
+    priority_id VARCHAR(36) NOT NULL COMMENT 'UUID độ ưu tiên',
     metadata JSON COMMENT 'Dữ liệu bổ sung (JSON)',
     
     -- System Table - Only created_at, updated_at (no user tracking)
