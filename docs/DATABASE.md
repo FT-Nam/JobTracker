@@ -6,10 +6,18 @@ JobTracker sử dụng **MySQL 8.0** làm database chính với thiết kế nor
 
 ### 🎯 Thiết kế nguyên tắc
 - **Normalization**: 3NF để tránh redundancy
+- **UUID Primary Keys**: Sử dụng STRING cho tất cả primary keys
 - **Indexing**: Tối ưu cho các truy vấn thường xuyên
-- **Foreign Keys**: Đảm bảo referential integrity
-- **Audit Fields**: Tracking tất cả thay đổi
-- **Soft Delete**: Không xóa dữ liệu thực tế
+- **Foreign Keys**: Đảm bảo referential integrity với UUID
+- **Audit Fields**: Tracking tất cả thay đổi với full audit trail
+- **Soft Delete**: Không xóa dữ liệu thực tế với deleted_at
+
+### 🆔 **UUID IMPLEMENTATION STRATEGY**
+- **Primary Keys**: STRING với UUID() function
+- **Foreign Keys**: STRING references
+- **Indexing**: Optimized cho UUID lookups
+- **Performance**: Proper indexing cho UUID queries
+- **Security**: UUIDs không thể guess được
 
 ## 🏗️ Database Schema
 
@@ -18,192 +26,335 @@ JobTracker sử dụng **MySQL 8.0** làm database chính với thiết kế nor
 #### 1.1. Roles Table (Bảng vai trò)
 ```sql
 CREATE TABLE roles (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID vai trò',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên vai trò',
     description VARCHAR(255) COMMENT 'Mô tả vai trò',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Vai trò đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.2. Permissions Table (Bảng quyền)
 ```sql
 CREATE TABLE permissions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID quyền',
     name VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tên quyền',
     resource VARCHAR(100) NOT NULL COMMENT 'Tài nguyên',
     action VARCHAR(50) NOT NULL COMMENT 'Hành động (CREATE, READ, UPDATE, DELETE)',
     description VARCHAR(255) COMMENT 'Mô tả quyền',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Quyền đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_resource_action (resource, action),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.3. Job Statuses Table (Bảng trạng thái công việc)
 ```sql
 CREATE TABLE job_statuses (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên trạng thái',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả trạng thái',
     color VARCHAR(7) DEFAULT '#6B7280' COMMENT 'Màu hiển thị (hex)',
     sort_order INT DEFAULT 0 COMMENT 'Thứ tự sắp xếp',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_sort_order (sort_order),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.4. Job Types Table (Bảng loại công việc)
 ```sql
 CREATE TABLE job_types (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại công việc',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại công việc',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại công việc',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.5. Priorities Table (Bảng độ ưu tiên)
 ```sql
 CREATE TABLE priorities (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên độ ưu tiên',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     level INT NOT NULL COMMENT 'Mức độ ưu tiên (1-4)',
     color VARCHAR(7) DEFAULT '#6B7280' COMMENT 'Màu hiển thị (hex)',
     description VARCHAR(255) COMMENT 'Mô tả độ ưu tiên',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Độ ưu tiên đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_level (level),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.6. Experience Levels Table (Bảng cấp độ kinh nghiệm)
 ```sql
 CREATE TABLE experience_levels (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID cấp độ kinh nghiệm',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên cấp độ',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     min_years INT DEFAULT 0 COMMENT 'Số năm kinh nghiệm tối thiểu',
     max_years INT COMMENT 'Số năm kinh nghiệm tối đa',
     description VARCHAR(255) COMMENT 'Mô tả cấp độ',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Cấp độ đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_min_years (min_years),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.7. Interview Types Table (Bảng loại phỏng vấn)
 ```sql
 CREATE TABLE interview_types (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại phỏng vấn',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại phỏng vấn',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.8. Interview Statuses Table (Bảng trạng thái phỏng vấn)
 ```sql
 CREATE TABLE interview_statuses (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID trạng thái phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên trạng thái',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả trạng thái',
     color VARCHAR(7) DEFAULT '#6B7280' COMMENT 'Màu hiển thị (hex)',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.9. Interview Results Table (Bảng kết quả phỏng vấn)
 ```sql
 CREATE TABLE interview_results (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kết quả phỏng vấn',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên kết quả',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả kết quả',
     color VARCHAR(7) DEFAULT '#6B7280' COMMENT 'Màu hiển thị (hex)',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Kết quả đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.10. Notification Types Table (Bảng loại thông báo)
 ```sql
 CREATE TABLE notification_types (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID loại thông báo',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên loại thông báo',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     description VARCHAR(255) COMMENT 'Mô tả loại thông báo',
     template VARCHAR(500) COMMENT 'Template thông báo',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Loại đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 #### 1.11. Notification Priorities Table (Bảng độ ưu tiên thông báo)
 ```sql
 CREATE TABLE notification_priorities (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID độ ưu tiên thông báo',
     name VARCHAR(50) NOT NULL UNIQUE COMMENT 'Tên độ ưu tiên',
     display_name VARCHAR(100) NOT NULL COMMENT 'Tên hiển thị',
     level INT NOT NULL COMMENT 'Mức độ ưu tiên (1-4)',
     color VARCHAR(7) DEFAULT '#6B7280' COMMENT 'Màu hiển thị (hex)',
     description VARCHAR(255) COMMENT 'Mô tả độ ưu tiên',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Độ ưu tiên đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_level (level),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
@@ -211,28 +362,32 @@ CREATE TABLE notification_priorities (
 
 ```sql
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID người dùng',
     email VARCHAR(255) NOT NULL UNIQUE COMMENT 'Email đăng nhập',
     password VARCHAR(255) COMMENT 'Mật khẩu đã hash (null nếu dùng OAuth)',
     first_name VARCHAR(100) NOT NULL COMMENT 'Tên',
     last_name VARCHAR(100) NOT NULL COMMENT 'Họ',
     phone VARCHAR(20) COMMENT 'Số điện thoại',
     avatar_url VARCHAR(500) COMMENT 'URL ảnh đại diện',
-    role_id BIGINT NOT NULL COMMENT 'ID vai trò người dùng',
+    role_id STRING NOT NULL COMMENT 'UUID vai trò người dùng',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Trạng thái hoạt động',
     email_verified BOOLEAN DEFAULT FALSE COMMENT 'Email đã xác thực',
     google_id VARCHAR(100) UNIQUE COMMENT 'Google OAuth ID',
     last_login_at TIMESTAMP NULL COMMENT 'Lần đăng nhập cuối',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_email (email),
     INDEX idx_google_id (google_id),
     INDEX idx_role_id (role_id),
@@ -247,7 +402,7 @@ CREATE TABLE users (
 
 ```sql
 CREATE TABLE companies (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công ty',
     name VARCHAR(255) NOT NULL COMMENT 'Tên công ty',
     website VARCHAR(500) COMMENT 'Website công ty',
     industry VARCHAR(100) COMMENT 'Lĩnh vực hoạt động',
@@ -256,15 +411,19 @@ CREATE TABLE companies (
     description TEXT COMMENT 'Mô tả công ty',
     logo_url VARCHAR(500) COMMENT 'URL logo công ty',
     is_verified BOOLEAN DEFAULT FALSE COMMENT 'Công ty đã xác thực',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_industry (industry),
     INDEX idx_size (size),
@@ -279,17 +438,17 @@ CREATE TABLE companies (
 
 ```sql
 CREATE TABLE jobs (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng sở hữu',
-    company_id BIGINT NOT NULL COMMENT 'ID công ty',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID công việc',
+    user_id STRING NOT NULL COMMENT 'UUID người dùng sở hữu',
+    company_id STRING NOT NULL COMMENT 'UUID công ty',
     title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề công việc',
     position VARCHAR(255) NOT NULL COMMENT 'Vị trí ứng tuyển',
-    job_type_id BIGINT NOT NULL COMMENT 'ID loại công việc',
+    job_type_id STRING NOT NULL COMMENT 'UUID loại công việc',
     location VARCHAR(255) COMMENT 'Địa điểm làm việc',
     salary_min DECIMAL(12,2) COMMENT 'Mức lương tối thiểu',
     salary_max DECIMAL(12,2) COMMENT 'Mức lương tối đa',
     currency VARCHAR(3) DEFAULT 'USD' COMMENT 'Đơn vị tiền tệ',
-    status_id BIGINT NOT NULL COMMENT 'ID trạng thái ứng tuyển',
+    status_id STRING NOT NULL COMMENT 'UUID trạng thái ứng tuyển',
     application_date DATE COMMENT 'Ngày nộp đơn',
     deadline_date DATE COMMENT 'Hạn nộp đơn',
     interview_date DATE COMMENT 'Ngày phỏng vấn',
@@ -299,15 +458,18 @@ CREATE TABLE jobs (
     benefits TEXT COMMENT 'Quyền lợi',
     job_url VARCHAR(500) COMMENT 'URL tin tuyển dụng',
     notes TEXT COMMENT 'Ghi chú cá nhân',
-    priority_id BIGINT NOT NULL COMMENT 'ID độ ưu tiên',
+    priority_id STRING NOT NULL COMMENT 'UUID độ ưu tiên',
     is_remote BOOLEAN DEFAULT FALSE COMMENT 'Làm việc từ xa',
-    experience_level_id BIGINT COMMENT 'ID cấp độ kinh nghiệm',
+    experience_level_id STRING COMMENT 'UUID cấp độ kinh nghiệm',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT,
     FOREIGN KEY (job_type_id) REFERENCES job_types(id) ON DELETE RESTRICT,
@@ -317,6 +479,7 @@ CREATE TABLE jobs (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_user_id (user_id),
     INDEX idx_company_id (company_id),
     INDEX idx_job_type_id (job_type_id),
@@ -340,22 +503,28 @@ CREATE TABLE jobs (
 
 ```sql
 CREATE TABLE skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID kỹ năng',
     name VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tên kỹ năng',
     category VARCHAR(50) NOT NULL COMMENT 'Danh mục kỹ năng (PROGRAMMING, FRAMEWORK, DATABASE, TOOL, LANGUAGE, SOFT_SKILL, OTHER)',
     description TEXT COMMENT 'Mô tả kỹ năng',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'Kỹ năng đang hoạt động',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_name (name),
     INDEX idx_category (category),
     INDEX idx_is_active (is_active),
+    INDEX idx_deleted_at (deleted_at),
     INDEX idx_created_by (created_by),
     INDEX idx_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -391,21 +560,25 @@ CREATE TABLE job_skills (
 
 ```sql
 CREATE TABLE user_skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng',
-    skill_id BIGINT NOT NULL COMMENT 'ID kỹ năng',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID user skill',
+    user_id STRING NOT NULL COMMENT 'UUID người dùng',
+    skill_id STRING NOT NULL COMMENT 'UUID kỹ năng',
     proficiency_level VARCHAR(50) NOT NULL COMMENT 'Mức độ thành thạo (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT)',
     years_of_experience DECIMAL(3,1) COMMENT 'Số năm kinh nghiệm',
     is_verified BOOLEAN DEFAULT FALSE COMMENT 'Kỹ năng đã xác thực',
+    
+    -- Partial Audit Fields (Junction Table)
+    created_by STRING COMMENT 'Người tạo (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
     is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     UNIQUE KEY uk_user_skill (user_id, skill_id),
     INDEX idx_user_id (user_id),
     INDEX idx_skill_id (skill_id),
@@ -419,28 +592,32 @@ CREATE TABLE user_skills (
 
 ```sql
 CREATE TABLE interviews (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL COMMENT 'ID công việc',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID phỏng vấn',
+    job_id STRING NOT NULL COMMENT 'UUID công việc',
     round_number INT NOT NULL COMMENT 'Số vòng phỏng vấn',
-    interview_type_id BIGINT NOT NULL COMMENT 'ID loại phỏng vấn',
+    interview_type_id STRING NOT NULL COMMENT 'UUID loại phỏng vấn',
     scheduled_date TIMESTAMP NOT NULL COMMENT 'Thời gian phỏng vấn dự kiến',
     actual_date TIMESTAMP NULL COMMENT 'Thời gian phỏng vấn thực tế',
     duration_minutes INT COMMENT 'Thời lượng phỏng vấn (phút)',
     interviewer_name VARCHAR(255) COMMENT 'Tên người phỏng vấn',
     interviewer_email VARCHAR(255) COMMENT 'Email người phỏng vấn',
     interviewer_position VARCHAR(255) COMMENT 'Vị trí người phỏng vấn',
-    status_id BIGINT NOT NULL COMMENT 'ID trạng thái phỏng vấn',
-    result_id BIGINT COMMENT 'ID kết quả phỏng vấn',
+    status_id STRING NOT NULL COMMENT 'UUID trạng thái phỏng vấn',
+    result_id STRING COMMENT 'UUID kết quả phỏng vấn',
     feedback TEXT COMMENT 'Phản hồi từ nhà tuyển dụng',
     notes TEXT COMMENT 'Ghi chú cá nhân',
     questions_asked TEXT COMMENT 'Câu hỏi được hỏi',
     answers_given TEXT COMMENT 'Câu trả lời đã đưa ra',
     rating INT CHECK (rating >= 1 AND rating <= 5) COMMENT 'Đánh giá chất lượng phỏng vấn (1-5)',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
+    deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (interview_type_id) REFERENCES interview_types(id) ON DELETE RESTRICT,
     FOREIGN KEY (status_id) REFERENCES interview_statuses(id) ON DELETE RESTRICT,
@@ -448,6 +625,7 @@ CREATE TABLE interviews (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_job_id (job_id),
     INDEX idx_interview_type_id (interview_type_id),
     INDEX idx_status_id (status_id),
@@ -456,6 +634,7 @@ CREATE TABLE interviews (
     INDEX idx_created_at (created_at),
     INDEX idx_created_by (created_by),
     INDEX idx_updated_by (updated_by),
+    INDEX idx_deleted_at (deleted_at),
     
     INDEX idx_job_round (job_id, round_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -465,19 +644,23 @@ CREATE TABLE interviews (
 
 ```sql
 CREATE TABLE job_resumes (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL COMMENT 'ID công việc',
-    resume_id BIGINT NOT NULL COMMENT 'ID CV',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID job resume',
+    job_id STRING NOT NULL COMMENT 'UUID công việc',
+    resume_id STRING NOT NULL COMMENT 'UUID CV',
     is_primary BOOLEAN DEFAULT TRUE COMMENT 'CV chính được sử dụng',
+    
+    -- Partial Audit Fields (Junction Table)
+    created_by STRING COMMENT 'Người tạo (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
     is_deleted BOOLEAN DEFAULT FALSE COMMENT 'Đã xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     UNIQUE KEY uk_job_resume (job_id, resume_id),
     INDEX idx_job_id (job_id),
     INDEX idx_resume_id (resume_id),
@@ -490,8 +673,8 @@ CREATE TABLE job_resumes (
 
 ```sql
 CREATE TABLE resumes (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng sở hữu',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID CV',
+    user_id STRING NOT NULL COMMENT 'UUID người dùng sở hữu',
     name VARCHAR(255) NOT NULL COMMENT 'Tên file CV',
     original_filename VARCHAR(255) NOT NULL COMMENT 'Tên file gốc',
     file_path VARCHAR(500) NOT NULL COMMENT 'Đường dẫn file trên Dropbox',
@@ -503,12 +686,15 @@ CREATE TABLE resumes (
     tags JSON COMMENT 'Tags phân loại CV (JSON array)',
     is_active BOOLEAN DEFAULT TRUE COMMENT 'CV đang hoạt động',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian upload',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
-    created_by BIGINT COMMENT 'Người tạo',
-    updated_by BIGINT COMMENT 'Người cập nhật cuối',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -523,32 +709,13 @@ CREATE TABLE resumes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### 9. Job Resumes Table (Bảng liên kết CV với công việc)
-
-```sql
-CREATE TABLE job_resumes (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL COMMENT 'ID công việc',
-    resume_id BIGINT NOT NULL COMMENT 'ID CV',
-    is_primary BOOLEAN DEFAULT TRUE COMMENT 'CV chính được sử dụng',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
-    
-    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
-    FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
-    
-    UNIQUE KEY uk_job_resume (job_id, resume_id),
-    INDEX idx_job_id (job_id),
-    INDEX idx_resume_id (resume_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### 10. Attachments Table (Bảng file đính kèm)
+### 11. Attachments Table (Bảng file đính kèm)
 
 ```sql
 CREATE TABLE attachments (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL COMMENT 'ID công việc',
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng upload',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID file đính kèm',
+    job_id STRING NOT NULL COMMENT 'UUID công việc',
+    user_id STRING NOT NULL COMMENT 'UUID người dùng upload',
     filename VARCHAR(255) NOT NULL COMMENT 'Tên file',
     original_filename VARCHAR(255) NOT NULL COMMENT 'Tên file gốc',
     file_path VARCHAR(500) NOT NULL COMMENT 'Đường dẫn file trên Dropbox',
@@ -558,17 +725,27 @@ CREATE TABLE attachments (
     description TEXT COMMENT 'Mô tả file',
     is_public BOOLEAN DEFAULT FALSE COMMENT 'File công khai',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian upload',
+    
+    -- Full Audit Fields
+    created_by STRING COMMENT 'Người tạo (FK to users)',
+    updated_by STRING COMMENT 'Người cập nhật cuối (FK to users)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
+    -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_job_id (job_id),
     INDEX idx_user_id (user_id),
     INDEX idx_attachment_type (attachment_type),
     INDEX idx_uploaded_at (uploaded_at),
+    INDEX idx_created_by (created_by),
+    INDEX idx_updated_by (updated_by),
     INDEX idx_deleted_at (deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
@@ -577,21 +754,24 @@ CREATE TABLE attachments (
 
 ```sql
 CREATE TABLE notifications (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng nhận thông báo',
-    job_id BIGINT NULL COMMENT 'ID công việc liên quan (nullable)',
-    type_id BIGINT NOT NULL COMMENT 'ID loại thông báo',
+    id STRING PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID thông báo',
+    user_id STRING NOT NULL COMMENT 'UUID người dùng nhận thông báo',
+    job_id STRING NULL COMMENT 'UUID công việc liên quan (nullable)',
+    type_id STRING NOT NULL COMMENT 'UUID loại thông báo',
     title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề thông báo',
     message TEXT NOT NULL COMMENT 'Nội dung thông báo',
     is_read BOOLEAN DEFAULT FALSE COMMENT 'Đã đọc chưa',
     is_sent BOOLEAN DEFAULT FALSE COMMENT 'Đã gửi chưa',
     sent_at TIMESTAMP NULL COMMENT 'Thời gian gửi',
     scheduled_at TIMESTAMP NULL COMMENT 'Thời gian lên lịch gửi',
-    priority_id BIGINT NOT NULL COMMENT 'ID độ ưu tiên',
+    priority_id STRING NOT NULL COMMENT 'UUID độ ưu tiên',
     metadata JSON COMMENT 'Dữ liệu bổ sung (JSON)',
+    
+    -- System Table - Only created_at, updated_at (no user tracking)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL,
     FOREIGN KEY (type_id) REFERENCES notification_types(id) ON DELETE RESTRICT,
@@ -974,19 +1154,306 @@ spring:
 - **System Generated**: notifications, user_sessions, audit_logs
 - **Lý do**: System generated, không cần user tracking
 
-### 🗑️ **SOFT DELETE STRATEGY**:
+### 🗑️ **SOFT DELETE STRATEGY - CHI TIẾT LÝ DO:**
 
-#### **deleted_at (TIMESTAMP)** - Business Entities:
-- users, companies, jobs, skills, interviews, resumes, attachments
-- **Lý do**: Cần biết chính xác khi nào bị xóa cho compliance và reporting
+#### **1. deleted_at (TIMESTAMP) - Business Entities & Lookup Tables:**
+**Bảng sử dụng**: 
+- **Business Entities**: users, companies, jobs, skills, interviews, resumes, attachments
+- **Lookup Tables**: roles, permissions, job_statuses, job_types, priorities, experience_levels, interview_types, interview_statuses, interview_results, notification_types, notification_priorities
 
-#### **is_deleted (BOOLEAN)** - Junction Tables:
-- user_skills, job_skills, job_resumes
-- **Lý do**: Đơn giản, performance tốt hơn, ít khi cần timestamp
+**Lý do sử dụng TIMESTAMP:**
 
-#### **No Soft Delete** - System Tables:
-- notifications, user_sessions, audit_logs
-- **Lý do**: Có thể xóa hard, không cần soft delete overhead
+**Cho Business Entities:**
+- **Compliance Requirements**: Cần biết chính xác khi nào dữ liệu bị xóa
+- **Audit Trail**: Tracking thời gian xóa cho forensic analysis
+- **Legal Requirements**: GDPR, SOX yêu cầu timestamp cho data deletion
+- **Reporting**: Có thể tạo reports về data lifecycle
+- **Recovery**: Có thể restore data trong khoảng thời gian cụ thể
+
+**Cho Lookup Tables (Admin Management):**
+- **Admin Control**: Admin có thể thêm/sửa/xóa danh mục
+- **Data Integrity**: Không thể xóa hard nếu còn records đang sử dụng
+- **Audit Trail**: Tracking khi nào admin thay đổi danh mục
+- **Rollback Capability**: Có thể restore danh mục đã xóa
+- **Historical Data**: Giữ lại lịch sử thay đổi danh mục
+- **Business Continuity**: Tránh break existing data khi xóa danh mục
+
+**Ví dụ use cases:**
+
+**Business Entities:**
+```sql
+-- Tìm users bị xóa trong tháng này
+SELECT * FROM users 
+WHERE deleted_at BETWEEN '2024-01-01' AND '2024-01-31';
+
+-- Audit report: Ai đã xóa job nào khi nào
+SELECT j.title, u.email, j.deleted_at 
+FROM jobs j 
+JOIN users u ON j.updated_by = u.id 
+WHERE j.deleted_at IS NOT NULL;
+```
+
+**Lookup Tables (Admin Management):**
+```sql
+-- Tìm job statuses đã bị admin xóa
+SELECT * FROM job_statuses 
+WHERE deleted_at IS NOT NULL;
+
+-- Audit: Admin nào đã xóa role nào khi nào
+SELECT r.name, u.email, r.deleted_at 
+FROM roles r 
+JOIN users u ON r.updated_by = u.id 
+WHERE r.deleted_at IS NOT NULL;
+
+-- Kiểm tra xem có jobs nào đang dùng status đã bị xóa
+SELECT j.title, js.name as status_name, js.deleted_at
+FROM jobs j 
+JOIN job_statuses js ON j.status_id = js.id 
+WHERE js.deleted_at IS NOT NULL;
+
+-- Restore job status đã bị xóa nhầm
+UPDATE job_statuses 
+SET deleted_at = NULL, updated_at = NOW() 
+WHERE id = ? AND deleted_at IS NOT NULL;
+```
+
+#### **2. is_deleted (BOOLEAN) - Junction Tables:**
+**Bảng sử dụng**: user_skills, job_skills, job_resumes
+
+**Lý do sử dụng BOOLEAN:**
+- **Performance**: Boolean queries nhanh hơn timestamp comparisons
+- **Simplicity**: Chỉ cần biết có bị xóa hay không, không cần khi nào
+- **Index Efficiency**: Boolean index nhỏ hơn timestamp index
+- **Query Optimization**: `WHERE is_deleted = FALSE` nhanh hơn `WHERE deleted_at IS NULL`
+- **Memory Usage**: 1 byte vs 8 bytes cho timestamp
+
+**Ví dụ use cases:**
+```sql
+-- Tìm skills active của user
+SELECT s.name FROM user_skills us
+JOIN skills s ON us.skill_id = s.id
+WHERE us.user_id = ? AND us.is_deleted = FALSE;
+
+-- Performance: Boolean check nhanh hơn
+-- ❌ Chậm: WHERE deleted_at IS NULL
+-- ✅ Nhanh: WHERE is_deleted = FALSE
+```
+
+#### **3. No Soft Delete - System Tables:**
+**Bảng sử dụng**: notifications, user_sessions, audit_logs
+
+**Lý do KHÔNG cần soft delete:**
+- **Temporary Data**: Dữ liệu tạm thời, có thể xóa hard
+- **Performance**: Tránh overhead của soft delete cho data volume lớn
+- **Storage**: Tiết kiệm storage space
+- **Cleanup**: Có thể xóa old data mà không ảnh hưởng business logic
+- **System Generated**: Không phải user data, ít rủi ro
+
+**Ví dụ use cases:**
+```sql
+-- Xóa notifications cũ hơn 30 ngày
+DELETE FROM notifications 
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
+
+-- Xóa expired sessions
+DELETE FROM user_sessions 
+WHERE expires_at < NOW();
+
+-- Archive old audit logs
+DELETE FROM audit_logs 
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 YEAR);
+```
+
+### 📊 **SOFT DELETE STRATEGY COMPARISON:**
+
+| **Strategy** | **Tables** | **Field** | **Size** | **Performance** | **Use Case** |
+|--------------|------------|-----------|----------|-----------------|--------------|
+| **deleted_at** | Business Entities + Lookup Tables | TIMESTAMP | 8 bytes | Medium | Compliance, Audit, Admin Management |
+| **is_deleted** | Junction Tables | BOOLEAN | 1 byte | Fast | Performance, Simple |
+| **No Soft Delete** | System Tables | None | 0 bytes | Fastest | Temporary Data |
+
+### 🔍 **CHI TIẾT IMPLEMENTATION:**
+
+#### **1. Business Entities & Lookup Tables với deleted_at:**
+
+**Business Entities:**
+```sql
+-- Users table
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+    deleted_at TIMESTAMP NULL,
+    
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_email_active (email, deleted_at) -- Composite index
+);
+
+-- Query active users
+SELECT * FROM users WHERE deleted_at IS NULL;
+
+-- Query deleted users
+SELECT * FROM users WHERE deleted_at IS NOT NULL;
+```
+
+**Lookup Tables (Admin Management):**
+```sql
+-- Job Statuses table
+CREATE TABLE job_statuses (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    display_name VARCHAR(100) NOT NULL,
+    -- ... other fields
+    deleted_at TIMESTAMP NULL,
+    
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_name_active (name, deleted_at) -- Composite index
+);
+
+-- Query active job statuses
+SELECT * FROM job_statuses WHERE deleted_at IS NULL;
+
+-- Query deleted job statuses (admin can restore)
+SELECT * FROM job_statuses WHERE deleted_at IS NOT NULL;
+
+-- Check if any jobs are using deleted status
+SELECT COUNT(*) FROM jobs j 
+JOIN job_statuses js ON j.status_id = js.id 
+WHERE js.deleted_at IS NOT NULL;
+```
+
+#### **2. Junction Tables với is_deleted:**
+```sql
+-- User Skills table
+CREATE TABLE user_skills (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    skill_id BIGINT NOT NULL,
+    -- ... other fields
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    INDEX idx_user_skill_active (user_id, skill_id, is_deleted),
+    INDEX idx_is_deleted (is_deleted)
+);
+
+-- Query active skills
+SELECT * FROM user_skills WHERE is_deleted = FALSE;
+
+-- Performance: Boolean check
+-- ✅ Fast: WHERE is_deleted = FALSE
+-- ❌ Slow: WHERE deleted_at IS NULL
+```
+
+#### **3. System Tables không soft delete:**
+```sql
+-- Notifications table
+CREATE TABLE notifications (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- No soft delete fields
+    
+    INDEX idx_user_created (user_id, created_at)
+);
+
+-- Direct hard delete
+DELETE FROM notifications WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
+```
+
+### 🎯 **QUYẾT ĐỊNH STRATEGY:**
+
+#### **Khi nào dùng deleted_at:**
+- ✅ **User data** cần compliance
+- ✅ **Business entities** cần audit trail
+- ✅ **Financial data** cần timestamp
+- ✅ **Personal data** theo GDPR
+- ✅ **Lookup Tables** admin quản lý danh mục
+- ✅ **Master data** cần rollback capability
+- ✅ **Reference data** có thể restore
+
+#### **Khi nào dùng is_deleted:**
+- ✅ **Junction tables** với volume lớn
+- ✅ **Performance critical** queries
+- ✅ **Simple boolean** logic đủ
+- ✅ **Temporary relationships**
+
+#### **Khi nào không cần soft delete:**
+- ✅ **System generated** data
+- ✅ **Temporary data** có lifecycle ngắn
+- ✅ **Log data** có thể archive
+- ✅ **Cache data** có thể rebuild
+
+### 🎯 **TẠI SAO LOOKUP TABLES CẦN SOFT DELETE:**
+
+#### **1. Admin Management Requirements:**
+```sql
+-- Admin có thể thêm job status mới
+INSERT INTO job_statuses (name, display_name, color) 
+VALUES ('On Hold', 'On Hold', '#FFA500');
+
+-- Admin có thể xóa job status (soft delete)
+UPDATE job_statuses 
+SET deleted_at = NOW(), updated_by = ? 
+WHERE id = ?;
+
+-- Admin có thể restore job status đã xóa
+UPDATE job_statuses 
+SET deleted_at = NULL, updated_at = NOW() 
+WHERE id = ? AND deleted_at IS NOT NULL;
+```
+
+#### **2. Data Integrity Protection:**
+```sql
+-- Kiểm tra trước khi xóa: Có jobs nào đang dùng status này không?
+SELECT COUNT(*) FROM jobs 
+WHERE status_id = ? AND deleted_at IS NULL;
+
+-- Nếu có jobs đang dùng, không cho phép xóa hard
+-- Chỉ cho phép soft delete để bảo vệ data integrity
+```
+
+#### **3. Business Continuity:**
+```sql
+-- Khi admin xóa nhầm job status
+-- Có thể restore ngay lập tức mà không ảnh hưởng existing data
+UPDATE job_statuses 
+SET deleted_at = NULL 
+WHERE name = 'Applied' AND deleted_at IS NOT NULL;
+
+-- Existing jobs vẫn hoạt động bình thường
+SELECT j.title, js.display_name 
+FROM jobs j 
+JOIN job_statuses js ON j.status_id = js.id 
+WHERE j.deleted_at IS NULL;
+```
+
+#### **4. Audit Trail cho Admin Actions:**
+```sql
+-- Track admin actions trên lookup tables
+SELECT 
+    js.name,
+    u.email as admin_email,
+    js.deleted_at,
+    js.updated_at
+FROM job_statuses js
+JOIN users u ON js.updated_by = u.id
+WHERE js.deleted_at IS NOT NULL
+ORDER BY js.deleted_at DESC;
+```
+
+#### **5. Rollback Capability:**
+```sql
+-- Admin có thể rollback toàn bộ changes
+UPDATE job_statuses 
+SET deleted_at = NULL, updated_at = NOW() 
+WHERE deleted_at BETWEEN '2024-01-01' AND '2024-01-31';
+
+-- Hoặc rollback specific changes
+UPDATE job_statuses 
+SET deleted_at = NULL 
+WHERE id IN (1, 2, 3) AND deleted_at IS NOT NULL;
+```
 
 ### 📈 **PERFORMANCE OPTIMIZATIONS**:
 - **Junction tables** dùng `is_deleted` để tránh NULL checks
