@@ -1,0 +1,142 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-jobs
+      author: namphan
+      changes:
+        - createTable:
+            tableName: jobs
+            remarks: "Bảng công việc"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID công việc"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng sở hữu"
+              - column:
+                  name: company_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID công ty"
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tiêu đề công việc"
+              - column:
+                  name: position
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Vị trí ứng tuyển"
+              - column:
+                  name: job_type_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID loại công việc"
+              - column:
+                  name: location
+                  type: varchar(255)
+                  remarks: "Địa điểm làm việc"
+              - column:
+                  name: salary_min
+                  type: decimal(12,2)
+                  remarks: "Mức lương tối thiểu"
+              - column:
+                  name: salary_max
+                  type: decimal(12,2)
+                  remarks: "Mức lương tối đa"
+              - column:
+                  name: currency
+                  type: varchar(3)
+                  defaultValue: 'USD'
+                  remarks: "Đơn vị tiền tệ"
+              - column:
+                  name: status_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID trạng thái ứng tuyển"
+              - column:
+                  name: application_date
+                  type: date
+                  remarks: "Ngày nộp đơn"
+              - column:
+                  name: deadline_date
+                  type: date
+                  remarks: "Hạn nộp đơn"
+              - column:
+                  name: interview_date
+                  type: date
+                  remarks: "Ngày phỏng vấn"
+              - column:
+                  name: offer_date
+                  type: date
+                  remarks: "Ngày nhận offer"
+              - column:
+                  name: job_description
+                  type: text
+                  remarks: "Mô tả công việc"
+              - column:
+                  name: requirements
+                  type: text
+                  remarks: "Yêu cầu công việc"
+              - column:
+                  name: benefits
+                  type: text
+                  remarks: "Quyền lợi"
+              - column:
+                  name: job_url
+                  type: varchar(500)
+                  remarks: "URL tin tuyển dụng"
+              - column:
+                  name: notes
+                  type: text
+                  remarks: "Ghi chú cá nhân"
+              - column:
+                  name: priority_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID độ ưu tiên"
+              - column:
+                  name: is_remote
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Làm việc từ xa"
+              - column:
+                  name: experience_level_id
+                  type: varchar(36)
+                  remarks: "UUID cấp độ kinh nghiệm"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

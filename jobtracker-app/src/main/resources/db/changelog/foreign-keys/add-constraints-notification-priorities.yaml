@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-notification-priorities
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: notification_priorities
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_notification_priorities_created_by_users
+
+        - addForeignKeyConstraint:
+            baseTableName: notification_priorities
+            baseColumnNames: updated_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_notification_priorities_updated_by_users

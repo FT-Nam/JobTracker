@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-audit-logs
+      author: namphan
+      changes:
+        - createTable:
+            tableName: audit_logs
+            remarks: "Bảng log audit"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID audit log"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  remarks: "UUID người dùng thực hiện (nullable cho system actions)"
+              - column:
+                  name: entity_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Loại entity (User, Job, Company, etc.)"
+              - column:
+                  name: entity_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID của entity"
+              - column:
+                  name: action
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Hành động thực hiện (CREATE, UPDATE, DELETE, LOGIN, LOGOUT, UPLOAD, DOWNLOAD)"
+              - column:
+                  name: old_values
+                  type: json
+                  remarks: "Giá trị cũ (JSON)"
+              - column:
+                  name: new_values
+                  type: json
+                  remarks: "Giá trị mới (JSON)"
+              - column:
+                  name: ip_address
+                  type: varchar(45)
+                  remarks: "Địa chỉ IP"
+              - column:
+                  name: user_agent
+                  type: text
+                  remarks: "User agent string"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"

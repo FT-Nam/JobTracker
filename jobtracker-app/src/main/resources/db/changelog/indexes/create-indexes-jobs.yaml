@@ -1,0 +1,115 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-jobs
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_user_id
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_company_id
+            columns:
+              - column:
+                  name: company_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_job_type_id
+            columns:
+              - column:
+                  name: job_type_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_status_id
+            columns:
+              - column:
+                  name: status_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_priority_id
+            columns:
+              - column:
+                  name: priority_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_experience_level_id
+            columns:
+              - column:
+                  name: experience_level_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_application_date
+            columns:
+              - column:
+                  name: application_date
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_deadline_date
+            columns:
+              - column:
+                  name: deadline_date
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_updated_by
+            columns:
+              - column:
+                  name: updated_by
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_deleted_at
+            columns:
+              - column:
+                  name: deleted_at
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_user_status
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: status_id
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_user_created
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: jobs
+            indexName: idx_jobs_deadline_status
+            columns:
+              - column:
+                  name: deadline_date
+              - column:
+                  name: status_id

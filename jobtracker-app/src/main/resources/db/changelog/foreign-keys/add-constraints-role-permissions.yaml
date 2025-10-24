@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-role-permissions
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: role_permissions
+            baseColumnNames: role_id
+            referencedTableName: roles
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_role_permissions_role_id_roles
+
+        - addForeignKeyConstraint:
+            baseTableName: role_permissions
+            baseColumnNames: permission_id
+            referencedTableName: permissions
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_role_permissions_permission_id_permissions
+
+        - addForeignKeyConstraint:
+            baseTableName: role_permissions
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_role_permissions_created_by_users

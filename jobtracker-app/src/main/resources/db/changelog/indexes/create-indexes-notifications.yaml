@@ -1,0 +1,78 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-notifications
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_user_id
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_job_id
+            columns:
+              - column:
+                  name: job_id
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_type_id
+            columns:
+              - column:
+                  name: type_id
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_priority_id
+            columns:
+              - column:
+                  name: priority_id
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_is_read
+            columns:
+              - column:
+                  name: is_read
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_is_sent
+            columns:
+              - column:
+                  name: is_sent
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_scheduled_at
+            columns:
+              - column:
+                  name: scheduled_at
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_user_unread
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: is_read
+
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_scheduled_unsent
+            columns:
+              - column:
+                  name: scheduled_at
+              - column:
+                  name: is_sent

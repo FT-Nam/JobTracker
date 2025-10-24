@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-attachments
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: attachments
+            baseColumnNames: job_id
+            referencedTableName: jobs
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_attachments_job_id_jobs
+
+        - addForeignKeyConstraint:
+            baseTableName: attachments
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_attachments_user_id_users
+
+        - addForeignKeyConstraint:
+            baseTableName: attachments
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_attachments_created_by_users
+
+        - addForeignKeyConstraint:
+            baseTableName: attachments
+            baseColumnNames: updated_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_attachments_updated_by_users

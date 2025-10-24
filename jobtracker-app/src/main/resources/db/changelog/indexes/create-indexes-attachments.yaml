@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-attachments
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_job_id
+            columns:
+              - column:
+                  name: job_id
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_user_id
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_attachment_type
+            columns:
+              - column:
+                  name: attachment_type
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_uploaded_at
+            columns:
+              - column:
+                  name: uploaded_at
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_updated_by
+            columns:
+              - column:
+                  name: updated_by
+
+        - createIndex:
+            tableName: attachments
+            indexName: idx_attachments_deleted_at
+            columns:
+              - column:
+                  name: deleted_at

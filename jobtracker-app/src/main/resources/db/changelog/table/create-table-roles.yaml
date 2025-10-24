@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-roles
+      author: namphan
+      changes:
+        - createTable:
+            tableName: roles
+            remarks: "Bảng vai trò"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "ID vai trò"
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Tên vai trò"
+              - column:
+                  name: description
+                  type: varchar(255)
+                  remarks: "Mô tả vai trò"
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  remarks: "Vai trò đang hoạt động"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

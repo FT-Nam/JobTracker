@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-attachments
+      author: namphan
+      changes:
+        - createTable:
+            tableName: attachments
+            remarks: "Bảng file đính kèm"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID file đính kèm"
+              - column:
+                  name: job_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID công việc"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng upload"
+              - column:
+                  name: filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tên file"
+              - column:
+                  name: original_filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tên file gốc"
+              - column:
+                  name: file_path
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                  remarks: "Đường dẫn file trên Dropbox"
+              - column:
+                  name: file_size
+                  type: bigint
+                  constraints:
+                    nullable: false
+                  remarks: "Kích thước file (bytes)"
+              - column:
+                  name: file_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Loại file"
+              - column:
+                  name: attachment_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Loại file đính kèm (JOB_DESCRIPTION, COVER_LETTER, CERTIFICATE, PORTFOLIO, OTHER)"
+              - column:
+                  name: description
+                  type: text
+                  remarks: "Mô tả file"
+              - column:
+                  name: is_public
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "File công khai"
+              - column:
+                  name: uploaded_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian upload"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

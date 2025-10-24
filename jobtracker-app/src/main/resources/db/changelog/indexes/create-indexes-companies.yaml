@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-companies
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_name
+            columns:
+              - column:
+                  name: name
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_industry
+            columns:
+              - column:
+                  name: industry
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_size
+            columns:
+              - column:
+                  name: size
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_updated_by
+            columns:
+              - column:
+                  name: updated_by
+
+        - createIndex:
+            tableName: companies
+            indexName: idx_companies_deleted_at
+            columns:
+              - column:
+                  name: deleted_at

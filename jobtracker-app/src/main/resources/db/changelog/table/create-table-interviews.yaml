@@ -1,0 +1,112 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-interviews
+      author: namphan
+      changes:
+        - createTable:
+            tableName: interviews
+            remarks: "Bảng phỏng vấn"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID phỏng vấn"
+              - column:
+                  name: job_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID công việc"
+              - column:
+                  name: round_number
+                  type: int
+                  constraints:
+                    nullable: false
+                  remarks: "Số vòng phỏng vấn"
+              - column:
+                  name: interview_type_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID loại phỏng vấn"
+              - column:
+                  name: scheduled_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: "Thời gian phỏng vấn dự kiến"
+              - column:
+                  name: actual_date
+                  type: timestamp
+                  remarks: "Thời gian phỏng vấn thực tế"
+              - column:
+                  name: duration_minutes
+                  type: int
+                  remarks: "Thời lượng phỏng vấn (phút)"
+              - column:
+                  name: interviewer_name
+                  type: varchar(255)
+                  remarks: "Tên người phỏng vấn"
+              - column:
+                  name: interviewer_email
+                  type: varchar(255)
+                  remarks: "Email người phỏng vấn"
+              - column:
+                  name: interviewer_position
+                  type: varchar(255)
+                  remarks: "Vị trí người phỏng vấn"
+              - column:
+                  name: status_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID trạng thái phỏng vấn"
+              - column:
+                  name: result_id
+                  type: varchar(36)
+                  remarks: "UUID kết quả phỏng vấn"
+              - column:
+                  name: feedback
+                  type: text
+                  remarks: "Phản hồi từ nhà tuyển dụng"
+              - column:
+                  name: notes
+                  type: text
+                  remarks: "Ghi chú cá nhân"
+              - column:
+                  name: questions_asked
+                  type: text
+                  remarks: "Câu hỏi được hỏi"
+              - column:
+                  name: answers_given
+                  type: text
+                  remarks: "Câu trả lời đã đưa ra"
+              - column:
+                  name: rating
+                  type: int
+                  remarks: "Đánh giá chất lượng phỏng vấn (1-5)"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

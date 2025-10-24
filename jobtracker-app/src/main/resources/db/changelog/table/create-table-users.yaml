@@ -1,0 +1,95 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-users
+      author: namphan
+      changes:
+        - createTable:
+            tableName: users
+            remarks: "Bảng người dùng"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID người dùng"
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Email đăng nhập"
+              - column:
+                  name: password
+                  type: varchar(255)
+                  remarks: "Mật khẩu đã hash (null nếu dùng OAuth)"
+              - column:
+                  name: first_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Tên"
+              - column:
+                  name: last_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Họ"
+              - column:
+                  name: phone
+                  type: varchar(20)
+                  remarks: "Số điện thoại"
+              - column:
+                  name: avatar_url
+                  type: varchar(500)
+                  remarks: "URL ảnh đại diện"
+              - column:
+                  name: role_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "ID vai trò người dùng"
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  remarks: "Trạng thái hoạt động"
+              - column:
+                  name: email_verified
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Email đã xác thực"
+              - column:
+                  name: google_id
+                  type: varchar(100)
+                  constraints:
+                    unique: true
+                  remarks: "Google OAuth ID"
+              - column:
+                  name: last_login_at
+                  type: timestamp
+                  remarks: "Lần đăng nhập cuối"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

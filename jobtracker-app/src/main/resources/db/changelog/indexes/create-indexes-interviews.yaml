@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-interviews
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_job_id
+            columns:
+              - column:
+                  name: job_id
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_interview_type_id
+            columns:
+              - column:
+                  name: interview_type_id
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_status_id
+            columns:
+              - column:
+                  name: status_id
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_result_id
+            columns:
+              - column:
+                  name: result_id
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_scheduled_date
+            columns:
+              - column:
+                  name: scheduled_date
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_updated_by
+            columns:
+              - column:
+                  name: updated_by
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_deleted_at
+            columns:
+              - column:
+                  name: deleted_at
+
+        - createIndex:
+            tableName: interviews
+            indexName: idx_interviews_job_round
+            columns:
+              - column:
+                  name: job_id
+              - column:
+                  name: round_number

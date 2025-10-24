@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-user-sessions
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: user_sessions
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_user_sessions_user_id_users

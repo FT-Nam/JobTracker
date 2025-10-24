@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-permissions
+      author: namphan
+      changes:
+        - createTable:
+            tableName: permissions
+            remarks: "Bảng quyền"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID quyền"
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Tên quyền"
+              - column:
+                  name: resource
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Tài nguyên"
+              - column:
+                  name: action
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Hành động (CREATE, READ, UPDATE, DELETE)"
+              - column:
+                  name: description
+                  type: varchar(255)
+                  remarks: "Mô tả quyền"
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  remarks: "Quyền đang hoạt động"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

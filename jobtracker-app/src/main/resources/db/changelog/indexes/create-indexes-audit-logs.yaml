@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-audit-logs
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_user_id
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_entity_type
+            columns:
+              - column:
+                  name: entity_type
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_entity_id
+            columns:
+              - column:
+                  name: entity_id
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_action
+            columns:
+              - column:
+                  name: action
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_entity_action
+            columns:
+              - column:
+                  name: entity_type
+              - column:
+                  name: entity_id
+              - column:
+                  name: action
+
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_logs_user_action
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: action

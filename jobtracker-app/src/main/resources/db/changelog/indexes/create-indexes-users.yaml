@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-users
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: users
+            indexName: idx_users_email
+            columns:
+              - column:
+                  name: email
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_google_id
+            columns:
+              - column:
+                  name: google_id
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_role_id
+            columns:
+              - column:
+                  name: role_id
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_created_at
+            columns:
+              - column:
+                  name: created_at
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_updated_by
+            columns:
+              - column:
+                  name: updated_by
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_deleted_at
+            columns:
+              - column:
+                  name: deleted_at

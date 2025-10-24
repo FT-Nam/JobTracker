@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-notifications
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: notifications
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_notifications_user_id_users
+
+        - addForeignKeyConstraint:
+            baseTableName: notifications
+            baseColumnNames: job_id
+            referencedTableName: jobs
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_notifications_job_id_jobs
+
+        - addForeignKeyConstraint:
+            baseTableName: notifications
+            baseColumnNames: type_id
+            referencedTableName: notification_types
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_notifications_type_id_notification_types
+
+        - addForeignKeyConstraint:
+            baseTableName: notifications
+            baseColumnNames: priority_id
+            referencedTableName: notification_priorities
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_notifications_priority_id_notification_priorities

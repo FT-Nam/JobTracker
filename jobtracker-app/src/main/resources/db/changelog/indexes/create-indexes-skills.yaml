@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-skills
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_name
+            columns:
+              - column:
+                  name: name
+
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_category
+            columns:
+              - column:
+                  name: category
+
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_is_active
+            columns:
+              - column:
+                  name: is_active
+
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_deleted_at
+            columns:
+              - column:
+                  name: deleted_at
+
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: skills
+            indexName: idx_skills_updated_by
+            columns:
+              - column:
+                  name: updated_by

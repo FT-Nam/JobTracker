@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-role-permissions
+      author: namphan
+      changes:
+        - createTable:
+            tableName: role_permissions
+            remarks: "Bảng phân quyền - Many-to-Many"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID role permission"
+              - column:
+                  name: role_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID vai trò"
+              - column:
+                  name: permission_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID quyền"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Đã xóa (soft delete)"

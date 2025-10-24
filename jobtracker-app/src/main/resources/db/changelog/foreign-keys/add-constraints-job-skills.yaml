@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-job-skills
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: job_skills
+            baseColumnNames: job_id
+            referencedTableName: jobs
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_job_skills_job_id_jobs
+
+        - addForeignKeyConstraint:
+            baseTableName: job_skills
+            baseColumnNames: skill_id
+            referencedTableName: skills
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_job_skills_skill_id_skills
+
+        - addForeignKeyConstraint:
+            baseTableName: job_skills
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_job_skills_created_by_users

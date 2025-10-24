@@ -1,0 +1,102 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-resumes
+      author: namphan
+      changes:
+        - createTable:
+            tableName: resumes
+            remarks: "Bảng CV"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID CV"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng sở hữu"
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tên file CV"
+              - column:
+                  name: original_filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tên file gốc"
+              - column:
+                  name: file_path
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                  remarks: "Đường dẫn file trên Dropbox"
+              - column:
+                  name: file_size
+                  type: bigint
+                  constraints:
+                    nullable: false
+                  remarks: "Kích thước file (bytes)"
+              - column:
+                  name: file_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Loại file (pdf, doc, docx)"
+              - column:
+                  name: version
+                  type: varchar(50)
+                  defaultValue: '1.0'
+                  remarks: "Phiên bản CV"
+              - column:
+                  name: is_default
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "CV mặc định"
+              - column:
+                  name: description
+                  type: text
+                  remarks: "Mô tả CV"
+              - column:
+                  name: tags
+                  type: json
+                  remarks: "Tags phân loại CV (JSON array)"
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  remarks: "CV đang hoạt động"
+              - column:
+                  name: uploaded_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian upload"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: updated_by
+                  type: varchar(36)
+                  remarks: "Người cập nhật cuối (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: deleted_at
+                  type: timestamp
+                  remarks: "Thời gian xóa (soft delete)"

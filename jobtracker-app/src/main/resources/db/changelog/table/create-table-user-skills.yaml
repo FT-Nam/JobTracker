@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-user-skills
+      author: namphan
+      changes:
+        - createTable:
+            tableName: user_skills
+            remarks: "Bảng kỹ năng người dùng"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID user skill"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng"
+              - column:
+                  name: skill_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID kỹ năng"
+              - column:
+                  name: proficiency_level
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Mức độ thành thạo (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT)"
+              - column:
+                  name: years_of_experience
+                  type: decimal(3,1)
+                  remarks: "Số năm kinh nghiệm"
+              - column:
+                  name: is_verified
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Kỹ năng đã xác thực"
+              - column:
+                  name: created_by
+                  type: varchar(36)
+                  remarks: "Người tạo (FK to users)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Đã xóa (soft delete)"

@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-user-sessions
+      author: namphan
+      changes:
+        - createTable:
+            tableName: user_sessions
+            remarks: "Bảng phiên đăng nhập"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID session"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng"
+              - column:
+                  name: session_token
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Token phiên đăng nhập"
+              - column:
+                  name: refresh_token
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Refresh token"
+              - column:
+                  name: device_info
+                  type: json
+                  remarks: "Thông tin thiết bị (JSON)"
+              - column:
+                  name: ip_address
+                  type: varchar(45)
+                  remarks: "Địa chỉ IP"
+              - column:
+                  name: user_agent
+                  type: text
+                  remarks: "User agent string"
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  remarks: "Phiên đang hoạt động"
+              - column:
+                  name: expires_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: "Thời gian hết hạn"
+              - column:
+                  name: last_used_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Lần sử dụng cuối"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"

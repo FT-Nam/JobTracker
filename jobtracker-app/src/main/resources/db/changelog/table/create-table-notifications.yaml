@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-table-notifications
+      author: namphan
+      changes:
+        - createTable:
+            tableName: notifications
+            remarks: "Bảng thông báo"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "UUID thông báo"
+              - column:
+                  name: user_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID người dùng nhận thông báo"
+              - column:
+                  name: job_id
+                  type: varchar(36)
+                  remarks: "UUID công việc liên quan (nullable)"
+              - column:
+                  name: type_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID loại thông báo"
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Tiêu đề thông báo"
+              - column:
+                  name: message
+                  type: text
+                  constraints:
+                    nullable: false
+                  remarks: "Nội dung thông báo"
+              - column:
+                  name: is_read
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Đã đọc chưa"
+              - column:
+                  name: is_sent
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: "Đã gửi chưa"
+              - column:
+                  name: sent_at
+                  type: timestamp
+                  remarks: "Thời gian gửi"
+              - column:
+                  name: scheduled_at
+                  type: timestamp
+                  remarks: "Thời gian lên lịch gửi"
+              - column:
+                  name: priority_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                  remarks: "UUID độ ưu tiên"
+              - column:
+                  name: metadata
+                  type: json
+                  remarks: "Dữ liệu bổ sung (JSON)"
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian tạo"
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  remarks: "Thời gian cập nhật"

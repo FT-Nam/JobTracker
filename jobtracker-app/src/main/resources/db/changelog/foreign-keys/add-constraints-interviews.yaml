@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-interviews
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: job_id
+            referencedTableName: jobs
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_interviews_job_id_jobs
+
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: interview_type_id
+            referencedTableName: interview_types
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_interviews_interview_type_id_interview_types
+
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: status_id
+            referencedTableName: interview_statuses
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_interviews_status_id_interview_statuses
+
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: result_id
+            referencedTableName: interview_results
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_interviews_result_id_interview_results
+
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_interviews_created_by_users
+
+        - addForeignKeyConstraint:
+            baseTableName: interviews
+            baseColumnNames: updated_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_interviews_updated_by_users

@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes-role-permissions
+      author: namphan
+      changes:
+        - createIndex:
+            tableName: role_permissions
+            indexName: idx_role_permissions_role_id
+            columns:
+              - column:
+                  name: role_id
+
+        - createIndex:
+            tableName: role_permissions
+            indexName: idx_role_permissions_permission_id
+            columns:
+              - column:
+                  name: permission_id
+
+        - createIndex:
+            tableName: role_permissions
+            indexName: idx_role_permissions_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: role_permissions
+            indexName: idx_role_permissions_is_deleted
+            columns:
+              - column:
+                  name: is_deleted

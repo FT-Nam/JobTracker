@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-constraints-interview-types
+      author: namphan
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: interview_types
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_interview_types_created_by_users
+
+        - addForeignKeyConstraint:
+            baseTableName: interview_types
+            baseColumnNames: updated_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_interview_types_updated_by_users
