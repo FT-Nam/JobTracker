@@ -830,8 +830,8 @@ CREATE TABLE notifications (
 
 ```sql
 CREATE TABLE user_sessions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT 'ID người dùng',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID session',
+    user_id VARCHAR(36) NOT NULL COMMENT 'UUID người dùng',
     session_token VARCHAR(500) NOT NULL UNIQUE COMMENT 'Token phiên đăng nhập',
     refresh_token VARCHAR(500) NOT NULL UNIQUE COMMENT 'Refresh token',
     device_info JSON COMMENT 'Thông tin thiết bị (JSON)',
@@ -843,8 +843,10 @@ CREATE TABLE user_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời gian cập nhật',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     
+    -- Indexes
     INDEX idx_user_id (user_id),
     INDEX idx_session_token (session_token),
     INDEX idx_refresh_token (refresh_token),
@@ -858,10 +860,10 @@ CREATE TABLE user_sessions (
 
 ```sql
 CREATE TABLE audit_logs (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NULL COMMENT 'ID người dùng thực hiện (nullable cho system actions)',
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()) COMMENT 'UUID audit log',
+    user_id VARCHAR(36) NULL COMMENT 'UUID người dùng thực hiện (nullable cho system actions)',
     entity_type VARCHAR(100) NOT NULL COMMENT 'Loại entity (User, Job, Company, etc.)',
-    entity_id BIGINT NOT NULL COMMENT 'ID của entity',
+    entity_id VARCHAR(36) NOT NULL COMMENT 'UUID của entity',
     action VARCHAR(50) NOT NULL COMMENT 'Hành động thực hiện (CREATE, UPDATE, DELETE, LOGIN, LOGOUT, UPLOAD, DOWNLOAD)',
     old_values JSON COMMENT 'Giá trị cũ (JSON)',
     new_values JSON COMMENT 'Giá trị mới (JSON)',
@@ -869,8 +871,10 @@ CREATE TABLE audit_logs (
     user_agent TEXT COMMENT 'User agent string',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
     
+    -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     
+    -- Indexes
     INDEX idx_user_id (user_id),
     INDEX idx_entity_type (entity_type),
     INDEX idx_entity_id (entity_id),
@@ -1315,7 +1319,7 @@ WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 YEAR);
 ```sql
 -- Users table
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     email VARCHAR(255) NOT NULL UNIQUE,
     -- ... other fields
     deleted_at TIMESTAMP NULL,
@@ -1335,7 +1339,7 @@ SELECT * FROM users WHERE deleted_at IS NOT NULL;
 ```sql
 -- Job Statuses table
 CREATE TABLE job_statuses (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(50) NOT NULL UNIQUE,
     display_name VARCHAR(100) NOT NULL,
     -- ... other fields
@@ -1361,9 +1365,9 @@ WHERE js.deleted_at IS NOT NULL;
 ```sql
 -- User Skills table
 CREATE TABLE user_skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    skill_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) NOT NULL,
+    skill_id VARCHAR(36) NOT NULL,
     -- ... other fields
     is_deleted BOOLEAN DEFAULT FALSE,
     
@@ -1383,8 +1387,8 @@ SELECT * FROM user_skills WHERE is_deleted = FALSE;
 ```sql
 -- Notifications table
 CREATE TABLE notifications (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- No soft delete fields
@@ -1520,11 +1524,11 @@ users.role_id → roles.id
 ```sql
 -- Junction table: role_permissions
 CREATE TABLE role_permissions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    role_id BIGINT NOT NULL,
-    permission_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    role_id VARCHAR(36) NOT NULL,
+    permission_id VARCHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by VARCHAR(36),
     
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
@@ -1603,15 +1607,15 @@ jobs.experience_level_id → experience_levels.id
 ```sql
 -- Junction table: user_skills
 CREATE TABLE user_skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    skill_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) NOT NULL,
+    skill_id VARCHAR(36) NOT NULL,
     proficiency_level VARCHAR(50) NOT NULL,
     years_of_experience DECIMAL(3,1),
     is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by VARCHAR(36),
     is_deleted BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -1632,14 +1636,14 @@ CREATE TABLE user_skills (
 ```sql
 -- Junction table: job_skills
 CREATE TABLE job_skills (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL,
-    skill_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    job_id VARCHAR(36) NOT NULL,
+    skill_id VARCHAR(36) NOT NULL,
     is_required BOOLEAN DEFAULT TRUE,
     proficiency_level VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by VARCHAR(36),
     is_deleted BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
@@ -1718,13 +1722,13 @@ resumes.user_id → users.id
 ```sql
 -- Junction table: job_resumes
 CREATE TABLE job_resumes (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    job_id BIGINT NOT NULL,
-    resume_id BIGINT NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    job_id VARCHAR(36) NOT NULL,
+    resume_id VARCHAR(36) NOT NULL,
     is_primary BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by VARCHAR(36),
     is_deleted BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
@@ -1856,10 +1860,10 @@ attachments.job_id → jobs.id
 #### **1. Primary Keys với UUID:**
 ```sql
 -- Thay vì: id BIGINT PRIMARY KEY AUTO_INCREMENT
--- Sử dụng: id CHAR(36) PRIMARY KEY DEFAULT (UUID())
+-- Sử dụng: id VARCHAR(36) PRIMARY KEY DEFAULT (UUID())
 
 CREATE TABLE users (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     email VARCHAR(255) NOT NULL UNIQUE,
     -- ... other fields
 );
@@ -1875,12 +1879,12 @@ CREATE TABLE users (
 #### **2. Foreign Keys với UUID:**
 ```sql
 -- Thay vì: user_id BIGINT NOT NULL
--- Sử dụng: user_id CHAR(36) NOT NULL
+-- Sử dụng: user_id VARCHAR(36) NOT NULL
 
 CREATE TABLE jobs (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    user_id CHAR(36) NOT NULL,
-    company_id CHAR(36) NOT NULL,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id VARCHAR(36) NOT NULL,
+    company_id VARCHAR(36) NOT NULL,
     -- ... other fields
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -1890,7 +1894,7 @@ CREATE TABLE jobs (
 
 #### **3. Indexing Strategy cho UUID:**
 ```sql
--- UUID với CHAR(36) - dễ đọc nhưng chậm hơn
+-- UUID với VARCHAR(36) - dễ đọc và debug
 CREATE INDEX idx_user_id ON jobs(user_id);
 
 -- UUID với BINARY(16) - nhanh hơn nhưng khó đọc
@@ -1961,7 +1965,7 @@ CREATE INDEX idx_user_created ON users(created_at);
 ```sql
 -- Dễ đọc và debug
 CREATE TABLE users (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     email VARCHAR(255) NOT NULL UNIQUE,
     -- ... other fields
 );
@@ -1972,7 +1976,7 @@ CREATE TABLE users (
 -- Sử dụng BIGINT cho internal, UUID cho external
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,  -- Internal ID
-    uuid CHAR(36) UNIQUE DEFAULT (UUID()), -- External ID
+    uuid VARCHAR(36) UNIQUE DEFAULT (UUID()), -- External ID
     email VARCHAR(255) NOT NULL UNIQUE,
     -- ... other fields
 );
@@ -1981,7 +1985,7 @@ CREATE TABLE users (
 ### **Best Practices:**
 
 #### **1. Consistent UUID Usage:**
-- Sử dụng cùng format UUID (CHAR(36) hoặc BINARY(16))
+- Sử dụng cùng format UUID (VARCHAR(36) hoặc BINARY(16))
 - Tạo UUID ở application level để control tốt hơn
 - Sử dụng UUID v4 (random) cho security
 
