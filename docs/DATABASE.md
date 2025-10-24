@@ -999,3 +999,501 @@ spring:
 - **Data lineage tracking** cho business entities
 - **Regulatory compliance** (GDPR, SOX, etc.)
 - **Forensic analysis** capabilities
+
+## 🔗 **CHI TIẾT QUAN HỆ GIỮA CÁC BẢNG**
+
+### 📋 **1. ROLE-BASED ACCESS CONTROL (RBAC)**
+
+#### **1.1. Roles ↔ Users (One-to-Many)**
+```sql
+-- Quan hệ: 1 role có thể có nhiều users
+users.role_id → roles.id
+```
+- **Mục đích**: Phân quyền người dùng (ADMIN, USER, MANAGER)
+- **Cardinality**: 1:N (1 role → N users)
+- **Foreign Key**: `users.role_id` → `roles.id`
+- **Constraint**: `ON DELETE RESTRICT` (không cho xóa role nếu còn users)
+
+#### **1.2. Roles ↔ Permissions (Many-to-Many)**
+```sql
+-- Junction table: role_permissions
+CREATE TABLE role_permissions (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    role_id BIGINT NOT NULL,
+    permission_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    UNIQUE KEY uk_role_permission (role_id, permission_id),
+    INDEX idx_role_id (role_id),
+    INDEX idx_permission_id (permission_id)
+);
+```
+- **Mục đích**: Phân quyền chi tiết (CREATE, READ, UPDATE, DELETE)
+- **Cardinality**: M:N (1 role → N permissions, 1 permission → N roles)
+- **Ví dụ**: ADMIN role có tất cả permissions, USER role chỉ có READ permissions
+
+### 📋 **2. JOB MANAGEMENT RELATIONSHIPS**
+
+#### **2.1. Users ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều jobs
+jobs.user_id → users.id
+```
+- **Mục đích**: Tracking jobs của từng user
+- **Cardinality**: 1:N (1 user → N jobs)
+- **Foreign Key**: `jobs.user_id` → `users.id`
+- **Constraint**: `ON DELETE CASCADE` (xóa user thì xóa jobs)
+
+#### **2.2. Companies ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 company có thể có nhiều jobs
+jobs.company_id → companies.id
+```
+- **Mục đích**: Tracking jobs của từng company
+- **Cardinality**: 1:N (1 company → N jobs)
+- **Foreign Key**: `jobs.company_id` → `companies.id`
+- **Constraint**: `ON DELETE RESTRICT` (không cho xóa company nếu còn jobs)
+
+#### **2.3. Job Statuses ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 status có thể có nhiều jobs
+jobs.status_id → job_statuses.id
+```
+- **Mục đích**: Tracking trạng thái jobs (APPLIED, INTERVIEW, OFFER, REJECTED)
+- **Cardinality**: 1:N (1 status → N jobs)
+- **Foreign Key**: `jobs.status_id` → `job_statuses.id`
+
+#### **2.4. Job Types ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 type có thể có nhiều jobs
+jobs.job_type_id → job_types.id
+```
+- **Mục đích**: Phân loại jobs (FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP)
+- **Cardinality**: 1:N (1 type → N jobs)
+- **Foreign Key**: `jobs.job_type_id` → `job_types.id`
+
+#### **2.5. Priorities ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 priority có thể có nhiều jobs
+jobs.priority_id → priorities.id
+```
+- **Mục đích**: Độ ưu tiên jobs (HIGH, MEDIUM, LOW)
+- **Cardinality**: 1:N (1 priority → N jobs)
+- **Foreign Key**: `jobs.priority_id` → `priorities.id`
+
+#### **2.6. Experience Levels ↔ Jobs (One-to-Many)**
+```sql
+-- Quan hệ: 1 level có thể có nhiều jobs
+jobs.experience_level_id → experience_levels.id
+```
+- **Mục đích**: Yêu cầu kinh nghiệm (ENTRY, MID, SENIOR, LEAD)
+- **Cardinality**: 1:N (1 level → N jobs)
+- **Foreign Key**: `jobs.experience_level_id` → `experience_levels.id`
+
+### 📋 **3. SKILLS MANAGEMENT RELATIONSHIPS**
+
+#### **3.1. Users ↔ Skills (Many-to-Many)**
+```sql
+-- Junction table: user_skills
+CREATE TABLE user_skills (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    skill_id BIGINT NOT NULL,
+    proficiency_level VARCHAR(50) NOT NULL,
+    years_of_experience DECIMAL(3,1),
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    UNIQUE KEY uk_user_skill (user_id, skill_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_skill_id (skill_id),
+    INDEX idx_proficiency_level (proficiency_level)
+);
+```
+- **Mục đích**: Tracking skills của users
+- **Cardinality**: M:N (1 user → N skills, 1 skill → N users)
+- **Additional Fields**: proficiency_level, years_of_experience, is_verified
+
+#### **3.2. Jobs ↔ Skills (Many-to-Many)**
+```sql
+-- Junction table: job_skills
+CREATE TABLE job_skills (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    job_id BIGINT NOT NULL,
+    skill_id BIGINT NOT NULL,
+    is_required BOOLEAN DEFAULT TRUE,
+    proficiency_level VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    UNIQUE KEY uk_job_skill (job_id, skill_id),
+    INDEX idx_job_id (job_id),
+    INDEX idx_skill_id (skill_id),
+    INDEX idx_is_required (is_required)
+);
+```
+- **Mục đích**: Tracking skills yêu cầu cho jobs
+- **Cardinality**: M:N (1 job → N skills, 1 skill → N jobs)
+- **Additional Fields**: is_required, proficiency_level
+
+### 📋 **4. INTERVIEW MANAGEMENT RELATIONSHIPS**
+
+#### **4.1. Jobs ↔ Interviews (One-to-Many)**
+```sql
+-- Quan hệ: 1 job có thể có nhiều interviews
+interviews.job_id → jobs.id
+```
+- **Mục đích**: Tracking interviews của jobs
+- **Cardinality**: 1:N (1 job → N interviews)
+- **Foreign Key**: `interviews.job_id` → `jobs.id`
+
+#### **4.2. Users ↔ Interviews (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều interviews
+interviews.user_id → users.id
+```
+- **Mục đích**: Tracking interviews của users
+- **Cardinality**: 1:N (1 user → N interviews)
+- **Foreign Key**: `interviews.user_id` → `users.id`
+
+#### **4.3. Interview Types ↔ Interviews (One-to-Many)**
+```sql
+-- Quan hệ: 1 type có thể có nhiều interviews
+interviews.interview_type_id → interview_types.id
+```
+- **Mục đích**: Phân loại interviews (PHONE, VIDEO, ONSITE, TECHNICAL)
+- **Cardinality**: 1:N (1 type → N interviews)
+- **Foreign Key**: `interviews.interview_type_id` → `interview_types.id`
+
+#### **4.4. Interview Statuses ↔ Interviews (One-to-Many)**
+```sql
+-- Quan hệ: 1 status có thể có nhiều interviews
+interviews.interview_status_id → interview_statuses.id
+```
+- **Mục đích**: Trạng thái interviews (SCHEDULED, COMPLETED, CANCELLED)
+- **Cardinality**: 1:N (1 status → N interviews)
+- **Foreign Key**: `interviews.interview_status_id` → `interview_statuses.id`
+
+#### **4.5. Interview Results ↔ Interviews (One-to-Many)**
+```sql
+-- Quan hệ: 1 result có thể có nhiều interviews
+interviews.interview_result_id → interview_results.id
+```
+- **Mục đích**: Kết quả interviews (PASSED, FAILED, PENDING)
+- **Cardinality**: 1:N (1 result → N interviews)
+- **Foreign Key**: `interviews.interview_result_id` → `interview_results.id`
+
+### 📋 **5. RESUME MANAGEMENT RELATIONSHIPS**
+
+#### **5.1. Users ↔ Resumes (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều resumes
+resumes.user_id → users.id
+```
+- **Mục đích**: Tracking resumes của users
+- **Cardinality**: 1:N (1 user → N resumes)
+- **Foreign Key**: `resumes.user_id` → `users.id`
+
+#### **5.2. Jobs ↔ Resumes (Many-to-Many)**
+```sql
+-- Junction table: job_resumes
+CREATE TABLE job_resumes (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    job_id BIGINT NOT NULL,
+    resume_id BIGINT NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    
+    UNIQUE KEY uk_job_resume (job_id, resume_id),
+    INDEX idx_job_id (job_id),
+    INDEX idx_resume_id (resume_id),
+    INDEX idx_is_primary (is_primary)
+);
+```
+- **Mục đích**: Tracking resumes được sử dụng cho jobs
+- **Cardinality**: M:N (1 job → N resumes, 1 resume → N jobs)
+- **Additional Fields**: is_primary (resume chính cho job)
+
+### 📋 **6. NOTIFICATION SYSTEM RELATIONSHIPS**
+
+#### **6.1. Users ↔ Notifications (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều notifications
+notifications.user_id → users.id
+```
+- **Mục đích**: Tracking notifications của users
+- **Cardinality**: 1:N (1 user → N notifications)
+- **Foreign Key**: `notifications.user_id` → `users.id`
+
+#### **6.2. Notification Types ↔ Notifications (One-to-Many)**
+```sql
+-- Quan hệ: 1 type có thể có nhiều notifications
+notifications.notification_type_id → notification_types.id
+```
+- **Mục đích**: Phân loại notifications (JOB_APPLICATION, INTERVIEW_REMINDER, OFFER_RECEIVED)
+- **Cardinality**: 1:N (1 type → N notifications)
+- **Foreign Key**: `notifications.notification_type_id` → `notification_types.id`
+
+#### **6.3. Notification Priorities ↔ Notifications (One-to-Many)**
+```sql
+-- Quan hệ: 1 priority có thể có nhiều notifications
+notifications.notification_priority_id → notification_priorities.id
+```
+- **Mục đích**: Độ ưu tiên notifications (HIGH, MEDIUM, LOW)
+- **Cardinality**: 1:N (1 priority → N notifications)
+- **Foreign Key**: `notifications.notification_priority_id` → `notification_priorities.id`
+
+### 📋 **7. SYSTEM TABLES RELATIONSHIPS**
+
+#### **7.1. Users ↔ User Sessions (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều sessions
+user_sessions.user_id → users.id
+```
+- **Mục đích**: Tracking active sessions của users
+- **Cardinality**: 1:N (1 user → N sessions)
+- **Foreign Key**: `user_sessions.user_id` → `users.id`
+
+#### **7.2. Users ↔ Audit Logs (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều audit logs
+audit_logs.user_id → users.id
+```
+- **Mục đích**: Tracking actions của users
+- **Cardinality**: 1:N (1 user → N audit logs)
+- **Foreign Key**: `audit_logs.user_id` → `users.id`
+
+### 📋 **8. ATTACHMENT RELATIONSHIPS**
+
+#### **8.1. Users ↔ Attachments (One-to-Many)**
+```sql
+-- Quan hệ: 1 user có thể có nhiều attachments
+attachments.user_id → users.id
+```
+- **Mục đích**: Tracking attachments của users
+- **Cardinality**: 1:N (1 user → N attachments)
+- **Foreign Key**: `attachments.user_id` → `users.id`
+
+#### **8.2. Jobs ↔ Attachments (One-to-Many)**
+```sql
+-- Quan hệ: 1 job có thể có nhiều attachments
+attachments.job_id → jobs.id
+```
+- **Mục đích**: Tracking attachments của jobs
+- **Cardinality**: 1:N (1 job → N attachments)
+- **Foreign Key**: `attachments.job_id` → `jobs.id`
+
+## 🔄 **QUAN HỆ TỔNG QUAN (ENTITY RELATIONSHIP DIAGRAM)**
+
+### **Core Entities:**
+- **users** (trung tâm) ↔ **jobs**, **resumes**, **interviews**, **notifications**, **attachments**
+- **companies** ↔ **jobs**
+- **jobs** (trung tâm) ↔ **skills**, **resumes**, **interviews**, **attachments**
+
+### **Lookup Tables:**
+- **roles** ↔ **users**
+- **job_statuses**, **job_types**, **priorities**, **experience_levels** ↔ **jobs**
+- **interview_types**, **interview_statuses**, **interview_results** ↔ **interviews**
+- **notification_types**, **notification_priorities** ↔ **notifications**
+
+### **Junction Tables:**
+- **role_permissions** (roles ↔ permissions)
+- **user_skills** (users ↔ skills)
+- **job_skills** (jobs ↔ skills)
+- **job_resumes** (jobs ↔ resumes)
+
+### **System Tables:**
+- **user_sessions** ↔ **users**
+- **audit_logs** ↔ **users**
+
+## 🆔 **UUID IMPLEMENTATION**
+
+### **Tại sao sử dụng UUID:**
+- **Security**: Không thể đoán được ID tiếp theo
+- **Distributed Systems**: Có thể tạo ID mà không cần database
+- **Microservices**: Mỗi service có thể tạo unique ID
+- **Privacy**: Không expose thông tin về số lượng records
+
+### **UUID vs BIGINT Comparison:**
+
+| **Aspect** | **BIGINT** | **UUID** |
+|------------|-------------|----------|
+| **Size** | 8 bytes | 16 bytes |
+| **Performance** | Faster (sequential) | Slower (random) |
+| **Security** | Predictable | Unpredictable |
+| **Distributed** | Requires coordination | No coordination needed |
+| **Indexing** | Better for range queries | Better for equality queries |
+
+### **UUID Implementation Strategy:**
+
+#### **1. Primary Keys với UUID:**
+```sql
+-- Thay vì: id BIGINT PRIMARY KEY AUTO_INCREMENT
+-- Sử dụng: id CHAR(36) PRIMARY KEY DEFAULT (UUID())
+
+CREATE TABLE users (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+);
+
+-- Hoặc sử dụng BINARY(16) cho performance tốt hơn
+CREATE TABLE users (
+    id BINARY(16) PRIMARY KEY DEFAULT (UUID_TO_BIN(UUID())),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+);
+```
+
+#### **2. Foreign Keys với UUID:**
+```sql
+-- Thay vì: user_id BIGINT NOT NULL
+-- Sử dụng: user_id CHAR(36) NOT NULL
+
+CREATE TABLE jobs (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id CHAR(36) NOT NULL,
+    company_id CHAR(36) NOT NULL,
+    -- ... other fields
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT
+);
+```
+
+#### **3. Indexing Strategy cho UUID:**
+```sql
+-- UUID với CHAR(36) - dễ đọc nhưng chậm hơn
+CREATE INDEX idx_user_id ON jobs(user_id);
+
+-- UUID với BINARY(16) - nhanh hơn nhưng khó đọc
+CREATE INDEX idx_user_id ON jobs(user_id);
+
+-- Composite indexes
+CREATE INDEX idx_user_status ON jobs(user_id, status_id);
+CREATE INDEX idx_user_created ON jobs(user_id, created_at);
+```
+
+#### **4. Application Level UUID Generation:**
+```java
+// Java - Spring Boot
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+    
+    // ... other fields
+}
+
+// Hoặc manual generation
+@Id
+@Column(name = "id", columnDefinition = "CHAR(36)")
+private String id = UUID.randomUUID().toString();
+```
+
+#### **5. Migration Strategy từ BIGINT sang UUID:**
+```sql
+-- Step 1: Thêm cột UUID mới
+ALTER TABLE users ADD COLUMN uuid CHAR(36) DEFAULT (UUID());
+
+-- Step 2: Populate UUID cho existing records
+UPDATE users SET uuid = UUID() WHERE uuid IS NULL;
+
+-- Step 3: Tạo foreign key constraints mới
+ALTER TABLE jobs ADD COLUMN user_uuid CHAR(36);
+UPDATE jobs j SET user_uuid = (SELECT uuid FROM users u WHERE u.id = j.user_id);
+
+-- Step 4: Drop old constraints và columns
+ALTER TABLE jobs DROP FOREIGN KEY fk_jobs_user_id;
+ALTER TABLE jobs DROP COLUMN user_id;
+ALTER TABLE jobs CHANGE user_uuid user_id CHAR(36) NOT NULL;
+
+-- Step 5: Add new foreign key
+ALTER TABLE jobs ADD FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE;
+```
+
+### **Performance Considerations:**
+
+#### **1. UUID với BINARY(16):**
+```sql
+-- Tốt nhất cho performance
+CREATE TABLE users (
+    id BINARY(16) PRIMARY KEY DEFAULT (UUID_TO_BIN(UUID())),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+);
+
+-- Indexes
+CREATE INDEX idx_user_email ON users(email);
+CREATE INDEX idx_user_created ON users(created_at);
+```
+
+#### **2. UUID với CHAR(36):**
+```sql
+-- Dễ đọc và debug
+CREATE TABLE users (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+);
+```
+
+#### **3. Hybrid Approach:**
+```sql
+-- Sử dụng BIGINT cho internal, UUID cho external
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,  -- Internal ID
+    uuid CHAR(36) UNIQUE DEFAULT (UUID()), -- External ID
+    email VARCHAR(255) NOT NULL UNIQUE,
+    -- ... other fields
+);
+```
+
+### **Best Practices:**
+
+#### **1. Consistent UUID Usage:**
+- Sử dụng cùng format UUID (CHAR(36) hoặc BINARY(16))
+- Tạo UUID ở application level để control tốt hơn
+- Sử dụng UUID v4 (random) cho security
+
+#### **2. Indexing Strategy:**
+- Index trên UUID columns cho foreign keys
+- Composite indexes cho queries thường xuyên
+- Consider covering indexes cho performance
+
+#### **3. API Design:**
+- Expose UUID trong API responses
+- Sử dụng UUID trong URLs: `/api/users/{uuid}`
+- Hide internal BIGINT IDs
+
+#### **4. Security Benefits:**
+- Không thể enumerate records
+- Không thể đoán được ID tiếp theo
+- Better privacy protection
