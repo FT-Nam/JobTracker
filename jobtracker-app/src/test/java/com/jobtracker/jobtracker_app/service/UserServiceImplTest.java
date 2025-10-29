@@ -196,7 +196,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void update_shouldUpdateNotChangeRole_whenRoleIsNull(){
+    void update_shouldReturnUpdateNotChangeRole_whenRoleIsNull(){
         updateRequest.setRoleId(null);
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
         when(userMapper.toUserResponse(any())).thenReturn(userResponse);
@@ -212,7 +212,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void update_shouldUpdateUser_whenValidRequest(){
+    void update_shouldReturnUpdateUser_whenValidRequest(){
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
         when(roleRepository.findById(anyString())).thenReturn(Optional.of(role));
         when(userMapper.toUserResponse(any())).thenReturn(userResponse);

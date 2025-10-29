@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     USER_NOT_EXISTED("User not existed", HttpStatus.NOT_FOUND),
     ROLE_NOT_EXISTED("Role not existed", HttpStatus.NOT_FOUND),
-    EMAIL_EXISTED("Email existed", HttpStatus.BAD_REQUEST);
+    PERMISSION_NOT_EXISTED("Permission not existed", HttpStatus.NOT_FOUND),
+    EMAIL_EXISTED("Email existed", HttpStatus.BAD_REQUEST),
+    NAME_EXISTED("Name existed", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus httpStatus;
