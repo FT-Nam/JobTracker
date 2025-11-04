@@ -5,6 +5,7 @@ import com.jobtracker.jobtracker_app.entity.User;
 import com.jobtracker.jobtracker_app.exception.AppException;
 import com.jobtracker.jobtracker_app.exception.ErrorCode;
 import com.jobtracker.jobtracker_app.repository.UserRepository;
+import com.jobtracker.jobtracker_app.serivce.cache.PermissionCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,10 +37,13 @@ public class SecurityConfig {
     private CustomJwtDecoder customJwtDecoder;
 
     @Autowired
-    private UserRepository userRepository;
+    private PermissionCacheService permissionCacheService;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
 
-    private final String[] PUBLIC_ENDPOINT ={"/api/v1/auth/**"};
+    private final String[] PUBLIC_ENDPOINT ={"/auth/**"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -48,7 +54,7 @@ public class SecurityConfig {
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
                 .decoder(customJwtDecoder)
                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
         http.cors(cor -> cor.configurationSource(corsConfigurationSource()));
 
@@ -67,11 +73,7 @@ public class SecurityConfig {
     private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter(){
         return jwt -> {
             String userId = jwt.getSubject();
-            User user = userRepository.findById(userId)
-                    .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-            List<String> permissions = user.getRole().getPermissions()
-                    .stream().map(com.jobtracker.jobtracker_app.entity.Permission::getName).toList();
+            List<String> permissions = permissionCacheService.getPermissions(userId);
 
             return permissions.stream()
                     .map(SimpleGrantedAuthority::new)
@@ -91,5 +93,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

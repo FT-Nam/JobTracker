@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Getter
 @Builder
@@ -13,6 +14,6 @@ import java.time.LocalDateTime;
 public class TokenInfo {
     String accessToken;
     String refreshToken;
-    LocalDateTime expiresIn;
-    LocalDateTime refreshExpiresIn;
+    Date expiresIn;
+    Date refreshExpiresIn;
 }

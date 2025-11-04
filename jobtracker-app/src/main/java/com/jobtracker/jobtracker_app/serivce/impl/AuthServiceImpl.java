@@ -44,6 +44,8 @@ public class AuthServiceImpl implements AuthService {
     RedisTemplate<String, String> redisTemplate;
     InvalidatedRepository invalidatedRepository;
 
+    private static final String CACHE_PREFIX = "refresh_token:";
+
     @NonFinal
     @Value("${jwt.signer-key}")
     String signerKey;
@@ -96,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
         String sub = signedJwt.getJWTClaimsSet().getSubject();
         String jit = signedJwt.getJWTClaimsSet().getJWTID();
         Date expiryTime = signedJwt.getJWTClaimsSet().getExpirationTime();
-        String key = "refresh-token:" + sub;
+        String key = CACHE_PREFIX + sub;
 
         InvalidatedToken invalidatedToken = InvalidatedToken.builder()
                 .id(jit)
@@ -151,8 +153,8 @@ public class AuthServiceImpl implements AuthService {
         TokenInfo tokenInfo = TokenInfo.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(LocalDateTime.from(Instant.now().plusSeconds(validDuration)))
-                .refreshExpiresIn(LocalDateTime.from(Instant.now().plusSeconds(refreshableDuration)))
+                .expiresIn(Date.from(Instant.now().plusSeconds(validDuration)))
+                .refreshExpiresIn(Date.from(Instant.now().plusSeconds(refreshableDuration)))
                 .build();
 
         UserInfo userInfo = UserInfo.builder()
@@ -171,7 +173,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void checkAndCreateRefreshToken(String sub, String refreshToken){
-        String key = "refresh-token:" + sub;
+        String key = CACHE_PREFIX + sub;
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
             redisTemplate.delete(key);
