@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-skills
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: skills
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_skills_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: skills
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_skills_updated_by_users
+

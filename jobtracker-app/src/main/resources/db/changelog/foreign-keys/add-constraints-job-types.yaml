@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-job-types
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: job_types
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_job_types_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: job_types
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_job_types_updated_by_users
+

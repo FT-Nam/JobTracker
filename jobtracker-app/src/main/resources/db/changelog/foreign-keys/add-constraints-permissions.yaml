@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-permissions
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: permissions
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_permissions_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: permissions
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_permissions_updated_by_users
+

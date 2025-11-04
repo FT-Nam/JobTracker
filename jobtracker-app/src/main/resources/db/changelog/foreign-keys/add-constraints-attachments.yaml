@@ -19,18 +19,5 @@ databaseChangeLog:
             onDelete: CASCADE
             constraintName: fk_attachments_user_id_users
 
-        - addForeignKeyConstraint:
-            baseTableName: attachments
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_attachments_created_by_users
 
-        - addForeignKeyConstraint:
-            baseTableName: attachments
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_attachments_updated_by_users
+

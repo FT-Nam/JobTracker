@@ -11,18 +11,5 @@ databaseChangeLog:
             onDelete: CASCADE
             constraintName: fk_resumes_user_id_users
 
-        - addForeignKeyConstraint:
-            baseTableName: resumes
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_resumes_created_by_users
 
-        - addForeignKeyConstraint:
-            baseTableName: resumes
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_resumes_updated_by_users
+

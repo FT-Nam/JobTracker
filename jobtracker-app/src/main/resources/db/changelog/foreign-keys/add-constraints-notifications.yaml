@@ -34,3 +34,5 @@ databaseChangeLog:
             referencedColumnNames: id
             onDelete: RESTRICT
             constraintName: fk_notifications_priority_id_notification_priorities
+
+

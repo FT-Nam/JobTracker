@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-interview-results
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: interview_results
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_interview_results_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: interview_results
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_interview_results_updated_by_users
+

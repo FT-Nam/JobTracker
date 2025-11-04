@@ -3,17 +3,4 @@ databaseChangeLog:
       id: add-constraints-roles
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: roles
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_roles_created_by_users
-        - addForeignKeyConstraint:
-            baseTableName: roles
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_roles_updated_by_users
+        

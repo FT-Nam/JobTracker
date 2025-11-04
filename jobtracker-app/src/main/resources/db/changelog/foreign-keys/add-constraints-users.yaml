@@ -10,19 +10,3 @@ databaseChangeLog:
             referencedColumnNames: id
             onDelete: RESTRICT
             constraintName: fk_users_role_id_roles
-
-        - addForeignKeyConstraint:
-            baseTableName: users
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_users_created_by_users
-
-        - addForeignKeyConstraint:
-            baseTableName: users
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_users_updated_by_users

@@ -41,7 +41,7 @@ databaseChangeLog:
 
 # Create junction tables
   - include:
-      file: db/changelog/table/create-table-role-permissions.yaml
+      file: db/changelog/table/create-table-roles-permissions.yaml
   - include:
       file: db/changelog/table/create-table-user-skills.yaml
   - include:
@@ -95,7 +95,7 @@ databaseChangeLog:
   - include:
       file: db/changelog/foreign-keys/add-constraints-attachments.yaml
   - include:
-      file: db/changelog/foreign-keys/add-constraints-role-permissions.yaml
+      file: db/changelog/foreign-keys/add-constraints-roles-permissions.yaml
   - include:
       file: db/changelog/foreign-keys/add-constraints-user-skills.yaml
   - include:
@@ -147,7 +147,7 @@ databaseChangeLog:
   - include:
       file: db/changelog/indexes/create-indexes-attachments.yaml
   - include:
-      file: db/changelog/indexes/create-indexes-role-permissions.yaml
+      file: db/changelog/indexes/create-indexes-roles-permissions.yaml
   - include:
       file: db/changelog/indexes/create-indexes-user-skills.yaml
   - include:

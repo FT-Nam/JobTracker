@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-companies
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: companies
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_companies_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: companies
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_companies_updated_by_users
+

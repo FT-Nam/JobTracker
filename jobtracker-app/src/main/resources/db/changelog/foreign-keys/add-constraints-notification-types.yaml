@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-notification-types
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: notification_types
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_notification_types_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: notification_types
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_notification_types_updated_by_users
+

@@ -10,3 +10,5 @@ databaseChangeLog:
             referencedColumnNames: id
             onDelete: SET NULL
             constraintName: fk_audit_logs_user_id_users
+
+

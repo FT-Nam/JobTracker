@@ -35,18 +35,5 @@ databaseChangeLog:
             onDelete: SET NULL
             constraintName: fk_interviews_result_id_interview_results
 
-        - addForeignKeyConstraint:
-            baseTableName: interviews
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_interviews_created_by_users
 
-        - addForeignKeyConstraint:
-            baseTableName: interviews
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_interviews_updated_by_users
+

@@ -3,18 +3,6 @@ databaseChangeLog:
       id: add-constraints-experience-levels
       author: namphan
       changes:
-        - addForeignKeyConstraint:
-            baseTableName: experience_levels
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_experience_levels_created_by_users
+        
 
-        - addForeignKeyConstraint:
-            baseTableName: experience_levels
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_experience_levels_updated_by_users
+

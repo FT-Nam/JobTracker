@@ -51,18 +51,5 @@ databaseChangeLog:
             onDelete: SET NULL
             constraintName: fk_jobs_experience_level_id_experience_levels
 
-        - addForeignKeyConstraint:
-            baseTableName: jobs
-            baseColumnNames: created_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_jobs_created_by_users
 
-        - addForeignKeyConstraint:
-            baseTableName: jobs
-            baseColumnNames: updated_by
-            referencedTableName: users
-            referencedColumnNames: id
-            onDelete: SET NULL
-            constraintName: fk_jobs_updated_by_users
+
