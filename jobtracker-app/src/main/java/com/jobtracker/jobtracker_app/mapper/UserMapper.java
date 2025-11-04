@@ -11,6 +11,7 @@ public interface UserMapper {
     @Mapping(target = "email", ignore = true)
     User toUser(UserCreationRequest request);
 
+    @Mapping(target = "roleName", source = "role.name")
     UserResponse toUserResponse(User user);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

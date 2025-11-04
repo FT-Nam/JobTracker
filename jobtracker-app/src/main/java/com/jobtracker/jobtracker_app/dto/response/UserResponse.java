@@ -23,7 +23,7 @@ public class UserResponse {
     String lastName;
     String phone;
     String avatarUrl;
-    Role role;
+    String roleName;
     Boolean isActive;
     Boolean emailVerified;
     String googleId;
