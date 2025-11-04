@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ public class PermissionServiceImpl implements PermissionService {
     PermissionMapper permissionMapper;
 
     @Override
+    @PreAuthorize("hasAuthority('PERMISSION_CREATE')")
     @Transactional
     public PermissionResponse create(PermissionRequest request) {
         if(permissionRepository.existsByName(request.getName())){
@@ -33,10 +35,13 @@ public class PermissionServiceImpl implements PermissionService {
 
         Permission permission = permissionMapper.toPermission(request);
 
+        permission.setName(request.getResource().toUpperCase() + "_" + request.getAction().toUpperCase());
+
         return permissionMapper.toPermissionResponse(permissionRepository.save(permission));
     }
 
     @Override
+    @PreAuthorize("hasAuthority('PERMISSION_READ')")
     public PermissionResponse getById(String id) {
         Permission permission = permissionRepository.findById(id)
                 .orElseThrow(()-> new AppException(ErrorCode.PERMISSION_NOT_EXISTED));
@@ -44,11 +49,13 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('PERMISSION_READ')")
     public Page<PermissionResponse> getAll(Pageable pageable) {
         return permissionRepository.findAll(pageable).map(permissionMapper::toPermissionResponse);
     }
 
     @Override
+    @PreAuthorize("hasAuthority('PERMISSION_UPDATE')")
     @Transactional
     public PermissionResponse update(String id, PermissionRequest request) {
         Permission permission = permissionRepository.findById(id)
@@ -65,6 +72,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('PERMISSION_DELETE')")
     @Transactional
     public void delete(String id) {
         Permission permission = permissionRepository.findById(id)

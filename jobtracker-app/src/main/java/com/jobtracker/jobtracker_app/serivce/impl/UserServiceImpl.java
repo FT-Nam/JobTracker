@@ -11,11 +11,13 @@ import com.jobtracker.jobtracker_app.mapper.UserMapper;
 import com.jobtracker.jobtracker_app.repository.RoleRepository;
 import com.jobtracker.jobtracker_app.repository.UserRepository;
 import com.jobtracker.jobtracker_app.serivce.UserService;
+import com.jobtracker.jobtracker_app.serivce.cache.PermissionCacheService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +29,10 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     RoleRepository roleRepository;
+    PermissionCacheService permissionCacheService;
 
     @Override
+    @PreAuthorize("hasAuthority('USER_CREATE')")
     @Transactional
     public UserResponse create(UserCreationRequest request) {
         if(userRepository.existsByEmail(request.getEmail())){
@@ -47,6 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('USER_READ')")
     public UserResponse getById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -54,11 +59,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('USER_READ')")
     public Page<UserResponse> getAll(Pageable pageable) {
         return userRepository.findAll(pageable).map(userMapper::toUserResponse);
     }
 
     @Override
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
     @Transactional
     public UserResponse update(String id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
@@ -68,6 +75,8 @@ public class UserServiceImpl implements UserService {
             Role role = roleRepository.findById(request.getRoleId())
                     .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
             user.setRole(role);
+
+//            permissionCacheService.evict(user.getId());
         }
 
         userMapper.updateUser(user, request);
@@ -76,6 +85,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('USER_DELETE')")
     @Transactional
     public void delete(String id) {
         User user = userRepository.findById(id)
