@@ -3,8 +3,10 @@ package com.jobtracker.jobtracker_app.controller;
 import com.jobtracker.jobtracker_app.dto.request.PermissionRequest;
 import com.jobtracker.jobtracker_app.dto.request.RoleRequest;
 import com.jobtracker.jobtracker_app.dto.response.ApiResponse;
+import com.jobtracker.jobtracker_app.dto.response.PaginationInfo;
 import com.jobtracker.jobtracker_app.dto.response.PermissionResponse;
 import com.jobtracker.jobtracker_app.dto.response.RoleResponse;
+import com.jobtracker.jobtracker_app.entity.Permission;
 import com.jobtracker.jobtracker_app.serivce.PermissionService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -13,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,9 +34,15 @@ public class PermissionController {
     }
 
     @GetMapping
-    public ApiResponse<Page<PermissionResponse>> getAll(Pageable pageable){
-        return ApiResponse.<Page<PermissionResponse>>builder()
-                .data(permissionService.getAll(pageable))
+    public ApiResponse<List<PermissionResponse>> getAll(Pageable pageable){
+        Page<PermissionResponse> permissions = permissionService.getAll(pageable);
+        return ApiResponse.<List<PermissionResponse>>builder()
+                .data(permissions.getContent())
+                .paginationInfo(PaginationInfo.builder()
+                        .page(permissions.getNumber())
+                        .size(permissions.getSize())
+                        .totalElements(permissions.getTotalElements())
+                        .build())
                 .build();
     }
 

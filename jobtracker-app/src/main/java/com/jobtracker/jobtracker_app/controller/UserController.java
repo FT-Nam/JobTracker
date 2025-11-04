@@ -3,6 +3,7 @@ package com.jobtracker.jobtracker_app.controller;
 import com.jobtracker.jobtracker_app.dto.request.UserCreationRequest;
 import com.jobtracker.jobtracker_app.dto.request.UserUpdateRequest;
 import com.jobtracker.jobtracker_app.dto.response.ApiResponse;
+import com.jobtracker.jobtracker_app.dto.response.PaginationInfo;
 import com.jobtracker.jobtracker_app.dto.response.UserResponse;
 import com.jobtracker.jobtracker_app.serivce.UserService;
 import jakarta.validation.Valid;
@@ -12,6 +13,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,9 +32,15 @@ public class UserController {
     }
 
     @GetMapping
-    public ApiResponse<Page<UserResponse>> getAll(Pageable pageable){
-        return ApiResponse.<Page<UserResponse>>builder()
-                .data(userService.getAll(pageable))
+    public ApiResponse<List<UserResponse>> getAll(Pageable pageable){
+        Page<UserResponse> userResponses = userService.getAll(pageable);
+        return ApiResponse.<List<UserResponse>>builder()
+                .data(userResponses.getContent())
+                .paginationInfo(PaginationInfo.builder()
+                        .page(userResponses.getNumber())
+                        .size(userResponses.getSize())
+                        .totalElements(userResponses.getTotalElements())
+                        .build())
                 .build();
     }
 

@@ -20,4 +20,5 @@ public class ApiResponse<T> {
     List<ValidationError> errors;
     @Builder.Default
     LocalDateTime timestamp = LocalDateTime.now();
+    PaginationInfo paginationInfo;
 }

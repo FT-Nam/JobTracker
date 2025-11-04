@@ -4,6 +4,7 @@ import com.jobtracker.jobtracker_app.dto.request.RoleRequest;
 import com.jobtracker.jobtracker_app.dto.request.UserCreationRequest;
 import com.jobtracker.jobtracker_app.dto.request.UserUpdateRequest;
 import com.jobtracker.jobtracker_app.dto.response.ApiResponse;
+import com.jobtracker.jobtracker_app.dto.response.PaginationInfo;
 import com.jobtracker.jobtracker_app.dto.response.RoleResponse;
 import com.jobtracker.jobtracker_app.dto.response.UserResponse;
 import com.jobtracker.jobtracker_app.serivce.RoleService;
@@ -14,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -31,9 +34,15 @@ public class RoleController {
     }
 
     @GetMapping
-    public ApiResponse<Page<RoleResponse>> getAll(Pageable pageable){
-        return ApiResponse.<Page<RoleResponse>>builder()
-                .data(roleService.getAll(pageable))
+    public ApiResponse<List<RoleResponse>> getAll(Pageable pageable){
+        Page<RoleResponse> responses = roleService.getAll(pageable);
+        return ApiResponse.<List<RoleResponse>>builder()
+                .data(responses.getContent())
+                .paginationInfo(PaginationInfo.builder()
+                        .page(responses.getNumber())
+                        .size(responses.getSize())
+                        .totalElements(responses.getTotalElements())
+                        .build())
                 .build();
     }
 
