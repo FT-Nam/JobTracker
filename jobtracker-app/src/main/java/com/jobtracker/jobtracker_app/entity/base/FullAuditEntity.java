@@ -1,8 +1,6 @@
 package com.jobtracker.jobtracker_app.entity.base;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,17 +28,14 @@ public class FullAuditEntity extends BaseEntity{
     @Column(name = "deleted_at")
     LocalDateTime deletedAt;
 
-    // Check delete
     public boolean isDeleted() {
         return deletedAt != null;
     }
 
-    // Delete
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }
 
-    // Restore
     public void restore() {
         this.deletedAt = null;
     }
