@@ -10,6 +10,7 @@ import com.jobtracker.jobtracker_app.exception.ErrorCode;
 import com.jobtracker.jobtracker_app.mapper.UserMapper;
 import com.jobtracker.jobtracker_app.repository.RoleRepository;
 import com.jobtracker.jobtracker_app.repository.UserRepository;
+import com.jobtracker.jobtracker_app.serivce.cache.PermissionCacheService;
 import com.jobtracker.jobtracker_app.serivce.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ public class UserServiceImplTest {
 
     @Mock
     private RoleRepository roleRepository;
+
+    @Mock
+    private PermissionCacheService permissionCacheService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -83,7 +87,7 @@ public class UserServiceImplTest {
 
         userResponse = UserResponse.builder()
                 .id("user1")
-                .role(role)
+                .roleName(role.getName())
                 .email("user1@gmail.com")
                 .phone("0988777666")
                 .firstName("Nam")
@@ -196,6 +200,19 @@ public class UserServiceImplTest {
     }
 
     @Test
+    void update_shouldEvictPermissionCache_whenRoleChanged(){
+        when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
+        when(roleRepository.findById(anyString())).thenReturn(Optional.of(role));
+        when(userMapper.toUserResponse(any())).thenReturn(userResponse);
+        when(userRepository.save(any())).thenReturn(user);
+
+        userService.update("user1", updateRequest);
+
+        verify(roleRepository).findById("role1");
+        verify(permissionCacheService).evict("user1");
+    }
+
+    @Test
     void update_shouldReturnUpdateNotChangeRole_whenRoleIsNull(){
         updateRequest.setRoleId(null);
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
@@ -205,7 +222,7 @@ public class UserServiceImplTest {
         UserResponse response = userService.update("user1", updateRequest);
 
         assertNotNull(response);
-        assertThat(response.getRole().getId()).isEqualTo("role1");
+        assertThat(response.getRoleName()).isEqualTo("admin");
         verify(userMapper).toUserResponse(user);
         verify(userMapper).updateUser(user, updateRequest);
         verify(userRepository).save(user);
@@ -244,6 +261,7 @@ public class UserServiceImplTest {
         userService.delete("user1");
 
         assertTrue(user.isDeleted());
+        assertNotNull(user.getDeletedAt());
         verify(userRepository).save(user);
     }
 }
