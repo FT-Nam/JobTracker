@@ -40,8 +40,6 @@ CREATE TABLE roles (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -70,8 +68,6 @@ CREATE TABLE permissions (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -99,7 +95,6 @@ CREATE TABLE role_permissions (
     -- Foreign Keys
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     UNIQUE KEY uk_role_permission (role_id, permission_id),
@@ -129,8 +124,6 @@ CREATE TABLE job_statuses (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -159,8 +152,6 @@ CREATE TABLE job_types (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -190,8 +181,6 @@ CREATE TABLE priorities (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -222,8 +211,6 @@ CREATE TABLE experience_levels (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -252,8 +239,6 @@ CREATE TABLE interview_types (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -282,8 +267,6 @@ CREATE TABLE interview_statuses (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -312,8 +295,6 @@ CREATE TABLE interview_results (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -342,8 +323,6 @@ CREATE TABLE notification_types (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -373,8 +352,6 @@ CREATE TABLE notification_priorities (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -412,8 +389,6 @@ CREATE TABLE users (
     
     -- Foreign Keys
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_email (email),
@@ -448,8 +423,6 @@ CREATE TABLE companies (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -505,8 +478,6 @@ CREATE TABLE jobs (
     FOREIGN KEY (status_id) REFERENCES job_statuses(id) ON DELETE RESTRICT,
     FOREIGN KEY (priority_id) REFERENCES priorities(id) ON DELETE RESTRICT,
     FOREIGN KEY (experience_level_id) REFERENCES experience_levels(id) ON DELETE SET NULL,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_user_id (user_id),
@@ -546,8 +517,6 @@ CREATE TABLE skills (
     deleted_at TIMESTAMP NULL COMMENT 'Thời gian xóa (soft delete)',
     
     -- Foreign Keys
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_name (name),
@@ -579,7 +548,6 @@ CREATE TABLE job_skills (
     -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     UNIQUE KEY uk_job_skill (job_id, skill_id),
     INDEX idx_job_id (job_id),
@@ -610,7 +578,6 @@ CREATE TABLE user_skills (
     -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     UNIQUE KEY uk_user_skill (user_id, skill_id),
@@ -656,8 +623,6 @@ CREATE TABLE interviews (
     FOREIGN KEY (interview_type_id) REFERENCES interview_types(id) ON DELETE RESTRICT,
     FOREIGN KEY (status_id) REFERENCES interview_statuses(id) ON DELETE RESTRICT,
     FOREIGN KEY (result_id) REFERENCES interview_results(id) ON DELETE SET NULL,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_job_id (job_id),
@@ -692,7 +657,6 @@ CREATE TABLE job_resumes (
     -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     UNIQUE KEY uk_job_resume (job_id, resume_id),
@@ -730,8 +694,6 @@ CREATE TABLE resumes (
     
     -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     INDEX idx_user_id (user_id),
     INDEX idx_is_default (is_default),
@@ -771,8 +733,6 @@ CREATE TABLE attachments (
     -- Foreign Keys
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
     
     -- Indexes
     INDEX idx_job_id (job_id),
@@ -1532,7 +1492,6 @@ CREATE TABLE role_permissions (
     
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     UNIQUE KEY uk_role_permission (role_id, permission_id),
     INDEX idx_role_id (role_id),
@@ -1620,7 +1579,6 @@ CREATE TABLE user_skills (
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     UNIQUE KEY uk_user_skill (user_id, skill_id),
     INDEX idx_user_id (user_id),
@@ -1648,7 +1606,6 @@ CREATE TABLE job_skills (
     
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     UNIQUE KEY uk_job_skill (job_id, skill_id),
     INDEX idx_job_id (job_id),
@@ -1733,7 +1690,6 @@ CREATE TABLE job_resumes (
     
     FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
     FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     
     UNIQUE KEY uk_job_resume (job_id, resume_id),
     INDEX idx_job_id (job_id),

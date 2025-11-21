@@ -361,6 +361,7 @@ Thay đổi mật khẩu.
 
 #### Request Headers
 ```
+
 Authorization: Bearer <access_token>
 ```
 
@@ -377,6 +378,88 @@ Authorization: Bearer <access_token>
 {
   "success": true,
   "message": "Password changed successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+## 👥 Admin User Management APIs
+
+> Chỉ dành cho ADMIN để quản lý bảng `users`.
+
+### 1. Get Users
+**GET** `/admin/users`
+
+Query hỗ trợ `role`, `status`, `search`, `createdFrom`.
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "email": "admin@gmail.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "phone": null,
+      "avatarUrl": null,
+      "roleId": "34d9a2e3-1a30-4a1a-b1ad-4b6d2619f1ce",
+      "roleName": "ADMIN",
+      "isActive": true,
+      "emailVerified": true,
+      "lastLoginAt": "2024-01-15T09:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-15T09:00:00Z",
+      "deletedAt": null
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
+    "size": 20,
+    "totalElements": 12,
+    "totalPages": 1
+  }
+}
+```
+
+### 2. Get User Details
+**GET** `/admin/users/{id}`
+
+Trả về thông tin đầy đủ của user kèm audit.
+
+### 3. Update User
+**PUT** `/admin/users/{id}`
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "phone": "+84123456789",
+  "roleId": "781af566-48d8-4066-9fd7-78284b642df0",
+  "isActive": true
+}
+```
+
+### 4. Deactivate / Soft Delete User
+**DELETE** `/admin/users/{id}`
+
+```json
+{
+  "success": true,
+  "message": "User deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 5. Restore User
+**PATCH** `/admin/users/{id}/restore`
+
+```json
+{
+  "success": true,
+  "message": "User restored successfully",
   "data": null,
   "timestamp": "2024-01-15T10:30:00Z"
 }
@@ -403,10 +486,8 @@ page=0&size=20&sort=createdAt,desc&status=APPLIED&company=Google&search=develope
 ```json
 {
   "success": true,
-  "message": "Jobs retrieved successfully",
-  "data": {
-    "content": [
-      {
+  "data": [
+    {
         "id": 1,
         "title": "Senior Java Developer",
         "position": "Backend Developer",
@@ -484,36 +565,19 @@ page=0&size=20&sort=createdAt,desc&status=APPLIED&company=Google&search=develope
           }
         ],
         "createdAt": "2024-01-10T09:00:00Z",
-        "updatedAt": "2024-01-10T09:00:00Z"
+        "updatedAt": "2024-01-10T09:00:00Z",
+        "createdBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+        "updatedBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+        "deletedAt": null
       }
-    ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20,
-      "sort": {
-        "sorted": true,
-        "unsorted": false,
-        "empty": false
-      },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
-    "totalElements": 1,
-    "totalPages": 1,
-    "last": true,
-    "first": true,
-    "numberOfElements": 1,
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
     "size": 20,
-    "number": 0,
-    "sort": {
-      "sorted": true,
-      "unsorted": false,
-      "empty": false
-    },
-    "empty": false
-  },
-  "timestamp": "2024-01-15T10:30:00Z"
+    "totalElements": 1,
+    "totalPages": 1
+  }
 }
 ```
 
@@ -762,6 +826,86 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### 7. Manage Job Skills
+
+**GET** `/jobs/{jobId}/skills`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "skillId": "a3e6e84c-5f21-4c4d-8d7d-4a38e9ab6f52",
+      "name": "Java",
+      "category": "PROGRAMMING",
+      "isRequired": true,
+      "proficiencyLevel": "ADVANCED"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+**POST** `/jobs/{jobId}/skills`
+
+```json
+{
+  "skillId": "b7e58a6e-5c5e-4de8-9a3f-6b1ae2d042b5",
+  "isRequired": true,
+  "proficiencyLevel": "INTERMEDIATE"
+}
+```
+
+**PATCH** `/jobs/{jobId}/skills/{skillId}`
+
+```json
+{
+  "isRequired": false,
+  "proficiencyLevel": "ADVANCED"
+}
+```
+
+**DELETE** `/jobs/{jobId}/skills/{skillId}`
+
+```json
+{
+  "success": true,
+  "message": "Job skill removed",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 8. Manage Job Resumes
+
+**POST** `/jobs/{jobId}/resumes`
+
+```json
+{
+  "resumeId": "e31ab668-0f3e-4ac4-a904-2acd07c05436",
+  "isPrimary": true
+}
+```
+
+**PATCH** `/jobs/{jobId}/resumes/{resumeId}`
+
+```json
+{
+  "isPrimary": true
+}
+```
+
+**DELETE** `/jobs/{jobId}/resumes/{resumeId}`
+
+```json
+{
+  "success": true,
+  "message": "Resume unlinked from job",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 #### Response (200 OK)
 ```json
 {
@@ -799,50 +943,31 @@ page=0&size=20&sort=name,asc&industry=Technology&search=Google
 ```json
 {
   "success": true,
-  "message": "Companies retrieved successfully",
-  "data": {
-    "content": [
-      {
-        "id": 1,
-        "name": "Google",
-        "website": "https://google.com",
-        "industry": "Technology",
-        "size": "LARGE",
-        "location": "Mountain View, CA",
-        "description": "Google is a multinational technology company...",
-        "logoUrl": "https://google.com/logo.png",
-        "isVerified": true,
-        "createdAt": "2024-01-01T00:00:00Z",
-        "updatedAt": "2024-01-01T00:00:00Z"
-      }
-    ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20,
-      "sort": {
-        "sorted": true,
-        "unsorted": false,
-        "empty": false
-      },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
-    "totalElements": 1,
-    "totalPages": 1,
-    "last": true,
-    "first": true,
-    "numberOfElements": 1,
+  "data": [
+    {
+      "id": 1,
+      "name": "Google",
+      "website": "https://google.com",
+      "industry": "Technology",
+      "size": "LARGE",
+      "location": "Mountain View, CA",
+      "description": "Google is a multinational technology company...",
+      "logoUrl": "https://google.com/logo.png",
+      "isVerified": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z",
+      "createdBy": null,
+      "updatedBy": null,
+      "deletedAt": null
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
     "size": 20,
-    "number": 0,
-    "sort": {
-      "sorted": true,
-      "unsorted": false,
-      "empty": false
-    },
-    "empty": false
-  },
-  "timestamp": "2024-01-15T10:30:00Z"
+    "totalElements": 1,
+    "totalPages": 1
+  }
 }
 ```
 
@@ -865,6 +990,37 @@ Authorization: Bearer <access_token>
   "size": "MEDIUM",
   "location": "San Francisco, CA",
   "description": "A innovative technology company..."
+}
+```
+
+### 3. Get Company by ID
+**GET** `/companies/{id}`
+
+Trả về thông tin chi tiết cùng metadata audit.
+
+### 4. Update Company
+**PUT** `/companies/{id}`
+
+```json
+{
+  "website": "https://newtech.com",
+  "industry": "Technology",
+  "size": "LARGE",
+  "location": "Remote",
+  "description": "Updated description",
+  "isVerified": true
+}
+```
+
+### 5. Delete Company (Soft Delete)
+**DELETE** `/companies/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Company deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
 
@@ -930,6 +1086,44 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Create Job Status
+**POST** `/lookup/job-statuses`
+
+```json
+{
+  "name": "ON_HOLD",
+  "displayName": "On Hold",
+  "description": "Application paused",
+  "color": "#FBBF24",
+  "sortOrder": 7
+}
+```
+
+### Update Job Status
+**PUT** `/lookup/job-statuses/{id}`
+
+```json
+{
+  "displayName": "On Hold",
+  "description": "Paused by company",
+  "color": "#FBBF24",
+  "isActive": true
+}
+```
+
+### Delete Job Status
+**DELETE** `/lookup/job-statuses/{id}`
+
+Soft delete trạng thái khỏi danh sách khả dụng. Response chuẩn:
+```json
+{
+  "success": true,
+  "message": "Job status deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ### 2. Get Job Types
 **GET** `/lookup/job-types`
 
@@ -961,6 +1155,40 @@ Authorization: Bearer <access_token>
       "isActive": true
     }
   ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Create Job Type
+**POST** `/lookup/job-types`
+
+```json
+{
+  "name": "APPRENTICESHIP",
+  "displayName": "Apprenticeship",
+  "description": "Apprenticeship program"
+}
+```
+
+### Update Job Type
+**PUT** `/lookup/job-types/{id}`
+
+```json
+{
+  "displayName": "Apprenticeship",
+  "description": "On-the-job apprenticeship",
+  "isActive": true
+}
+```
+
+### Delete Job Type
+**DELETE** `/lookup/job-types/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Job type deleted successfully",
+  "data": null,
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -1004,6 +1232,44 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Create Priority
+**POST** `/lookup/priorities`
+
+```json
+{
+  "name": "BLOCKER",
+  "displayName": "Blocker",
+  "level": 5,
+  "color": "#DC2626",
+  "description": "Must act immediately"
+}
+```
+
+### Update Priority
+**PUT** `/lookup/priorities/{id}`
+
+```json
+{
+  "displayName": "Blocker",
+  "level": 5,
+  "color": "#DC2626",
+  "description": "Highest urgency",
+  "isActive": true
+}
+```
+
+### Delete Priority
+**DELETE** `/lookup/priorities/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Priority deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ### 4. Get Experience Levels
 **GET** `/lookup/experience-levels`
 
@@ -1043,6 +1309,44 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Create Experience Level
+**POST** `/lookup/experience-levels`
+
+```json
+{
+  "name": "STAFF",
+  "displayName": "Staff",
+  "minYears": 8,
+  "maxYears": 12,
+  "description": "Staff engineer level"
+}
+```
+
+### Update Experience Level
+**PUT** `/lookup/experience-levels/{id}`
+
+```json
+{
+  "displayName": "Staff",
+  "minYears": 8,
+  "maxYears": 12,
+  "description": "Staff / Principal track",
+  "isActive": true
+}
+```
+
+### Delete Experience Level
+**DELETE** `/lookup/experience-levels/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Experience level deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ### 5. Get Interview Types
 **GET** `/lookup/interview-types`
 
@@ -1074,6 +1378,40 @@ Authorization: Bearer <access_token>
       "isActive": true
     }
   ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Create Interview Type
+**POST** `/lookup/interview-types`
+
+```json
+{
+  "name": "PAIR_PROGRAMMING",
+  "displayName": "Pair Programming",
+  "description": "Live coding with interviewer"
+}
+```
+
+### Update Interview Type
+**PUT** `/lookup/interview-types/{id}`
+
+```json
+{
+  "displayName": "Pair Programming",
+  "description": "Live pair programming session",
+  "isActive": true
+}
+```
+
+### Delete Interview Type
+**DELETE** `/lookup/interview-types/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Interview type deleted successfully",
+  "data": null,
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -1115,6 +1453,42 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Create Interview Status
+**POST** `/lookup/interview-statuses`
+
+```json
+{
+  "name": "NO_SHOW",
+  "displayName": "No Show",
+  "description": "Candidate did not attend",
+  "color": "#F87171"
+}
+```
+
+### Update Interview Status
+**PUT** `/lookup/interview-statuses/{id}`
+
+```json
+{
+  "displayName": "No Show",
+  "description": "Candidate did not attend",
+  "color": "#F87171",
+  "isActive": true
+}
+```
+
+### Delete Interview Status
+**DELETE** `/lookup/interview-statuses/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Interview status deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ### 7. Get Interview Results
 **GET** `/lookup/interview-results`
 
@@ -1152,6 +1526,529 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Create Interview Result
+**POST** `/lookup/interview-results`
+
+```json
+{
+  "name": "ON_HOLD",
+  "displayName": "On Hold",
+  "description": "Awaiting leadership decision",
+  "color": "#FBBF24"
+}
+```
+
+### Update Interview Result
+**PUT** `/lookup/interview-results/{id}`
+
+```json
+{
+  "displayName": "On Hold",
+  "description": "Pending leadership decision",
+  "color": "#FBBF24",
+  "isActive": true
+}
+```
+
+### Delete Interview Result
+**DELETE** `/lookup/interview-results/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Interview result deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 8. Get Notification Types
+**GET** `/lookup/notification-types`
+
+Lấy danh sách loại thông báo hệ thống.
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Notification types retrieved successfully",
+  "data": [
+    {
+      "id": "c9d0c7f4-4d1c-4a53-8a51-4f53c9a9f5d0",
+      "name": "DEADLINE_REMINDER",
+      "displayName": "Deadline Reminder",
+      "description": "Reminder for job application deadline",
+      "template": "Your job application for {job_title} is due in {days} days.",
+      "isActive": true
+    },
+    {
+      "id": "2c0d54a7-ef1d-4ef1-a38e-a89461e4d1cd",
+      "name": "INTERVIEW_REMINDER",
+      "displayName": "Interview Reminder",
+      "description": "Reminder for upcoming interview",
+      "template": "You have an interview for {job_title} at {company_name} in {hours} hours.",
+      "isActive": true
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Create Notification Type
+**POST** `/lookup/notification-types`
+
+```json
+{
+  "name": "CUSTOM",
+  "displayName": "Custom Message",
+  "description": "Manual notification",
+  "template": "{message}",
+  "isActive": true
+}
+```
+
+### Update Notification Type
+**PUT** `/lookup/notification-types/{id}`
+
+```json
+{
+  "displayName": "Custom Message",
+  "description": "Manual notification template",
+  "template": "{message}",
+  "isActive": true
+}
+```
+
+### Delete Notification Type
+**DELETE** `/lookup/notification-types/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Notification type deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 9. Get Notification Priorities
+**GET** `/lookup/notification-priorities`
+
+Lấy danh sách mức độ ưu tiên của thông báo.
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Notification priorities retrieved successfully",
+  "data": [
+    {
+      "id": "0da2f18c-4c3d-4d2c-b3f5-2d933515d96e",
+      "name": "LOW",
+      "displayName": "Low",
+      "level": 1,
+      "color": "#6B7280",
+      "description": "Low priority notification",
+      "isActive": true
+    },
+    {
+      "id": "a9fd0c51-fd0a-4a01-bbbd-12cf32c29086",
+      "name": "HIGH",
+      "displayName": "High",
+      "level": 3,
+      "color": "#F59E0B",
+      "description": "High priority notification",
+      "isActive": true
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Create Notification Priority
+**POST** `/lookup/notification-priorities`
+
+```json
+{
+  "name": "CRITICAL",
+  "displayName": "Critical",
+  "level": 5,
+  "color": "#B91C1C",
+  "description": "Critical notifications",
+  "isActive": true
+}
+```
+
+### Update Notification Priority
+**PUT** `/lookup/notification-priorities/{id}`
+
+```json
+{
+  "displayName": "Critical",
+  "level": 5,
+  "color": "#B91C1C",
+  "description": "Critical notifications only",
+  "isActive": true
+}
+```
+
+### Delete Notification Priority
+**DELETE** `/lookup/notification-priorities/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Notification priority deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+## 🔐 RBAC & Permission APIs
+
+> ⚠️ Các endpoint này yêu cầu quyền `ADMIN`.
+
+### 1. Get Roles
+**GET** `/admin/roles`
+
+Lấy danh sách roles cùng metadata để gán cho user.
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Query Parameters
+```
+page=0&size=20&sort=name,asc&isActive=true&search=admin
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "34d9a2e3-1a30-4a1a-b1ad-4b6d2619f1ce",
+      "name": "ADMIN",
+      "description": "Administrator with full system access",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-10T12:00:00Z",
+      "createdBy": null,
+      "updatedBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "deletedAt": null
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
+    "size": 20,
+    "totalElements": 2,
+    "totalPages": 1
+  }
+}
+```
+
+### 2. Create Role
+**POST** `/admin/roles`
+
+Tạo role mới cho hệ thống.
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+#### Request Body
+```json
+{
+  "name": "HIRING_MANAGER",
+  "description": "Limited admin role for managing job data",
+  "isActive": true
+}
+```
+
+#### Response (201 Created)
+```json
+{
+  "success": true,
+  "message": "Role created successfully",
+  "data": {
+    "id": "781af566-48d8-4066-9fd7-78284b642df0",
+    "name": "HIRING_MANAGER",
+    "description": "Limited admin role for managing job data",
+    "isActive": true,
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 3. Get Role Details
+**GET** `/admin/roles/{id}`
+
+Lấy thông tin chi tiết một role kèm metadata.
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "data": {
+    "id": "34d9a2e3-1a30-4a1a-b1ad-4b6d2619f1ce",
+    "name": "ADMIN",
+    "description": "Administrator with full system access",
+    "isActive": true,
+    "permissions": [
+      {
+        "id": "5a12b2d5-0b42-4b3c-815a-7cf6fca39a8e",
+        "name": "JOB_READ",
+        "resource": "JOB",
+        "action": "READ"
+      }
+    ],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-10T12:00:00Z",
+    "deletedAt": null
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 4. Update Role
+**PUT** `/admin/roles/{id}`
+
+#### Request Body
+```json
+{
+  "description": "System administrator role",
+  "isActive": true
+}
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Role updated successfully",
+  "data": {
+    "id": "34d9a2e3-1a30-4a1a-b1ad-4b6d2619f1ce",
+    "name": "ADMIN",
+    "description": "System administrator role",
+    "isActive": true,
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 5. Delete Role (Soft Delete)
+**DELETE** `/admin/roles/{id}`
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Role deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 6. Get Permissions
+**GET** `/admin/permissions`
+
+Liệt kê toàn bộ permissions có thể gán cho roles.
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "5a12b2d5-0b42-4b3c-815a-7cf6fca39a8e",
+      "name": "JOB_READ",
+      "resource": "JOB",
+      "action": "READ",
+      "description": "Read job information",
+      "isActive": true
+    },
+    {
+      "id": "6df6adf7-02f0-4d66-92bb-59f32b2b7a25",
+      "name": "JOB_CREATE",
+      "resource": "JOB",
+      "action": "CREATE",
+      "description": "Create new jobs",
+      "isActive": true
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 7. Create Permission
+**POST** `/admin/permissions`
+
+```json
+{
+  "name": "COMPANY_DELETE",
+  "resource": "COMPANY",
+  "action": "DELETE",
+  "description": "Delete companies",
+  "isActive": true
+}
+```
+
+#### Response (201 Created)
+```json
+{
+  "success": true,
+  "message": "Permission created successfully",
+  "data": {
+    "id": "85a1cb38-4e9f-4f90-a7d5-f45df3a5515d",
+    "name": "COMPANY_DELETE",
+    "resource": "COMPANY",
+    "action": "DELETE",
+    "description": "Delete companies",
+    "isActive": true,
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 8. Update Permission
+**PUT** `/admin/permissions/{id}`
+
+```json
+{
+  "description": "Delete company records",
+  "isActive": true
+}
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Permission updated successfully",
+  "data": {
+    "id": "85a1cb38-4e9f-4f90-a7d5-f45df3a5515d",
+    "name": "COMPANY_DELETE",
+    "resource": "COMPANY",
+    "action": "DELETE",
+    "description": "Delete company records",
+    "isActive": true,
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 9. Delete Permission
+**DELETE** `/admin/permissions/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Permission deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 10. Update Role Permissions
+**PUT** `/admin/roles/{roleId}/permissions`
+
+Cập nhật danh sách permission cho role cụ thể.
+
+#### Request Body
+```json
+{
+  "permissionIds": [
+    "5a12b2d5-0b42-4b3c-815a-7cf6fca39a8e",
+    "6df6adf7-02f0-4d66-92bb-59f32b2b7a25"
+  ]
+}
+```
+
+### 11. Get Role Permissions
+**GET** `/admin/roles/{roleId}/permissions`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "permissionId": "5a12b2d5-0b42-4b3c-815a-7cf6fca39a8e",
+      "name": "JOB_READ",
+      "resource": "JOB",
+      "action": "READ"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 12. Add Single Permission to Role
+**POST** `/admin/roles/{roleId}/permissions`
+
+```json
+{
+  "permissionId": "6df6adf7-02f0-4d66-92bb-59f32b2b7a25"
+}
+```
+
+#### Response
+```json
+{
+  "success": true,
+  "message": "Permission added to role",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 13. Remove Permission from Role
+**DELETE** `/admin/roles/{roleId}/permissions/{permissionId}`
+
+```json
+{
+  "success": true,
+  "message": "Permission removed from role",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Role permissions updated successfully",
+  "data": {
+    "roleId": "34d9a2e3-1a30-4a1a-b1ad-4b6d2619f1ce",
+    "permissionIds": [
+      "5a12b2d5-0b42-4b3c-815a-7cf6fca39a8e",
+      "6df6adf7-02f0-4d66-92bb-59f32b2b7a25"
+    ],
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ## 🎯 Skills Management APIs
 
 ### 1. Get All Skills
@@ -1173,57 +2070,77 @@ page=0&size=50&sort=name,asc&category=PROGRAMMING&search=Java
 ```json
 {
   "success": true,
-  "message": "Skills retrieved successfully",
-  "data": {
-    "content": [
-      {
-        "id": 1,
-        "name": "Java",
-        "category": "PROGRAMMING",
-        "description": "Object-oriented programming language",
-        "isActive": true,
-        "createdAt": "2024-01-01T00:00:00Z"
-      },
-      {
-        "id": 2,
-        "name": "Spring Boot",
-        "category": "FRAMEWORK",
-        "description": "Java framework for building web applications",
-        "isActive": true,
-        "createdAt": "2024-01-01T00:00:00Z"
-      }
-    ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 50,
-      "sort": {
-        "sorted": true,
-        "unsorted": false,
-        "empty": false
-      },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
+  "data": [
+    {
+      "id": 1,
+      "name": "Java",
+      "category": "PROGRAMMING",
+      "description": "Object-oriented programming language",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "createdBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "updatedBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "deletedAt": null
     },
-    "totalElements": 2,
-    "totalPages": 1,
-    "last": true,
-    "first": true,
-    "numberOfElements": 2,
+    {
+      "id": 2,
+      "name": "Spring Boot",
+      "category": "FRAMEWORK",
+      "description": "Java framework for building web applications",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "createdBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "updatedBy": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "deletedAt": null
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
     "size": 50,
-    "number": 0,
-    "sort": {
-      "sorted": true,
-      "unsorted": false,
-      "empty": false
-    },
-    "empty": false
-  },
+    "totalElements": 2,
+    "totalPages": 1
+  }
+}
+```
+
+### 2. Get Skill by ID
+**GET** `/skills/{id}`
+
+### 3. Create Skill
+**POST** `/skills`
+
+```json
+{
+  "name": "Kubernetes",
+  "category": "TOOL",
+  "description": "Container orchestration"
+}
+```
+
+### 4. Update Skill
+**PUT** `/skills/{id}`
+
+```json
+{
+  "description": "Managed Kubernetes platform",
+  "isActive": true
+}
+```
+
+### 5. Delete Skill
+**DELETE** `/skills/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Skill deleted successfully",
+  "data": null,
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
 
-### 2. Get User Skills
+### 6. Get User Skills
 **GET** `/users/skills`
 
 Lấy skills của user hiện tại.
@@ -1258,7 +2175,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-### 3. Add User Skill
+### 7. Add User Skill
 **POST** `/users/skills`
 
 Thêm skill cho user.
@@ -1274,6 +2191,29 @@ Authorization: Bearer <access_token>
   "skillId": 1,
   "proficiencyLevel": "ADVANCED",
   "yearsOfExperience": 5.0
+}
+```
+
+### 8. Update User Skill
+**PUT** `/users/skills/{id}`
+
+```json
+{
+  "proficiencyLevel": "EXPERT",
+  "yearsOfExperience": 6.5,
+  "isVerified": true
+}
+```
+
+### 9. Delete User Skill
+**DELETE** `/users/skills/{id}`
+
+```json
+{
+  "success": true,
+  "message": "User skill deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
 
@@ -1396,6 +2336,35 @@ Content-Length: 1024000
 <binary_file_content>
 ```
 
+### 4. Get Resume Details
+**GET** `/resumes/{id}`
+
+Trả về metadata đầy đủ (name, tags, version, audit).
+
+### 5. Update Resume Metadata
+**PUT** `/resumes/{id}`
+
+```json
+{
+  "name": "John_Doe_Resume_2025.pdf",
+  "description": "Updated for 2025 season",
+  "tags": ["lead", "manager"],
+  "isDefault": true
+}
+```
+
+### 6. Delete Resume
+**DELETE** `/resumes/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Resume deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
 ## 🎤 Interview Management APIs
 
 ### 1. Get Job Interviews
@@ -1497,6 +2466,23 @@ Authorization: Bearer <access_token>
 Cập nhật thông tin interview.
 
 #### Request Headers
+```
+
+### 4. Get Interview Details
+**GET** `/interviews/{id}`
+
+Trả về đầy đủ thông tin của một interview (bao gồm audit, feedback).
+
+### 5. Delete Interview
+**DELETE** `/interviews/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Interview deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
 ```
 Authorization: Bearer <access_token>
 ```
@@ -1710,53 +2696,31 @@ page=0&size=20&isRead=false&type=DEADLINE_REMINDER
 ```json
 {
   "success": true,
-  "message": "Notifications retrieved successfully",
-  "data": {
-    "content": [
-      {
-        "id": 1,
-        "jobId": 1,
-        "type": "DEADLINE_REMINDER",
-        "title": "Deadline Reminder",
-        "message": "Google application deadline is in 3 days",
-        "isRead": false,
-        "isSent": true,
-        "sentAt": "2024-01-15T10:00:00Z",
-        "priority": "HIGH",
-        "metadata": {
-          "deadlineDate": "2024-01-18",
-          "companyName": "Google"
-        },
-        "createdAt": "2024-01-15T10:00:00Z"
-      }
-    ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20,
-      "sort": {
-        "sorted": false,
-        "unsorted": true,
-        "empty": true
+  "data": [
+    {
+      "id": 1,
+      "jobId": 1,
+      "type": "DEADLINE_REMINDER",
+      "title": "Deadline Reminder",
+      "message": "Google application deadline is in 3 days",
+      "isRead": false,
+      "isSent": true,
+      "sentAt": "2024-01-15T10:00:00Z",
+      "priority": "HIGH",
+      "metadata": {
+        "deadlineDate": "2024-01-18",
+        "companyName": "Google"
       },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
-    "totalElements": 1,
-    "totalPages": 1,
-    "last": true,
-    "first": true,
-    "numberOfElements": 1,
+      "createdAt": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
     "size": 20,
-    "number": 0,
-    "sort": {
-      "sorted": false,
-      "unsorted": true,
-      "empty": true
-    },
-    "empty": false
-  },
-  "timestamp": "2024-01-15T10:30:00Z"
+    "totalElements": 1,
+    "totalPages": 1
+  }
 }
 ```
 
@@ -1802,6 +2766,161 @@ Authorization: Bearer <access_token>
   "data": {
     "updatedCount": 5
   },
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 4. Create Notification (Manual/Admin)
+**POST** `/notifications`
+
+```json
+{
+  "userId": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+  "jobId": "d7e6d2c9-0c6e-4ca8-bc52-2e95746bffc3",
+  "typeId": "c9d0c7f4-4d1c-4a53-8a51-4f53c9a9f5d0",
+  "priorityId": "0da2f18c-4c3d-4d2c-b3f5-2d933515d96e",
+  "title": "Custom Reminder",
+  "message": "Follow up with recruiter tomorrow",
+  "scheduledAt": "2024-01-16T09:00:00Z",
+  "metadata": {
+    "channel": "EMAIL"
+  }
+}
+```
+
+### 5. Get Notification Details
+**GET** `/notifications/{id}`
+
+Trả về đầy đủ metadata (job, user, template data).
+
+### 6. Delete Notification
+**DELETE** `/notifications/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Notification deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+## 🔑 Session Management APIs
+
+### 1. Get Active Sessions
+**GET** `/sessions`
+
+Lấy danh sách phiên đăng nhập của user hiện tại (bao gồm thiết bị khác).
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "13af47a3-9f8b-4ab0-8f2b-b0199a55de6b",
+      "deviceInfo": {
+        "os": "Windows 11",
+        "browser": "Chrome 118"
+      },
+      "ipAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 ...",
+      "isActive": true,
+      "expiresAt": "2024-02-01T09:00:00Z",
+      "lastUsedAt": "2024-01-15T09:30:00Z",
+      "createdAt": "2024-01-10T08:00:00Z"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}
+```
+
+### 2. Revoke Session
+**DELETE** `/sessions/{id}`
+
+Đăng xuất (revoke) một session cụ thể.
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Session revoked successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+## 📜 Audit Log APIs
+
+### 1. Get Audit Logs
+**GET** `/audit-logs`
+
+> ⚠️ Chỉ dành cho ADMIN.
+
+Lấy log hành động của người dùng/system để phục vụ kiểm tra.
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Query Parameters
+```
+page=0&size=20&entityType=JOB&action=UPDATE&startDate=2024-01-01&endDate=2024-01-31
+```
+
+#### Response (200 OK)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "f4f7c10a-9052-431c-8f4c-92669aa4bcd0",
+      "entityType": "JOB",
+      "entityId": "d7e6d2c9-0c6e-4ca8-bc52-2e95746bffc3",
+      "action": "UPDATE",
+      "userId": "e2019f85-4a2f-4a6a-94b8-42c9b62b34be",
+      "userEmail": "admin@gmail.com",
+      "oldValues": {
+        "status": "APPLIED"
+      },
+      "newValues": {
+        "status": "INTERVIEW"
+      },
+      "ipAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 ...",
+      "createdAt": "2024-01-12T08:15:00Z"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z",
+  "paginationInfo": {
+    "page": 0,
+    "size": 20,
+    "totalElements": 125,
+    "totalPages": 7
+  }
+}
+```
+
+### 2. Delete Audit Log (Archive)
+**DELETE** `/audit-logs/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Audit log archived successfully",
+  "data": null,
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -1863,6 +2982,36 @@ Content-Disposition: attachment; filename="Google_Job_Description.pdf"
 Content-Length: 512000
 
 <binary_file_content>
+```
+
+### 3. List Job Attachments
+**GET** `/jobs/{jobId}/attachments`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "5f47e8b3-338f-4f1a-8e65-92dbd1dcb2f2",
+      "filename": "job_description.pdf",
+      "attachmentType": "JOB_DESCRIPTION",
+      "uploadedAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### 4. Delete Attachment
+**DELETE** `/attachments/{id}`
+
+```json
+{
+  "success": true,
+  "message": "Attachment deleted successfully",
+  "data": null,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
 ```
 
 ## 🚨 Error Responses
